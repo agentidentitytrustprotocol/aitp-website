@@ -1,0 +1,60 @@
+---
+title: "Specification"
+description: "AITP RFC specifications"
+---
+
+
+This directory contains the normative RFCs that define the Agent Identity & Trust Protocol (AITP). AITP is an **agent-to-agent (A2A)** trust protocol; v0.1 is the first published version.
+
+| RFC | Title | Status |
+|---|---|---|
+| [RFC-AITP-0001](/spec/core) | Core — envelope, signatures, replay, error codes | Release Candidate |
+| [RFC-AITP-0002](/spec/identity) | Identity Binding | Release Candidate |
+| [RFC-AITP-0003](/spec/manifest) | Agent Manifest | Release Candidate |
+| [RFC-AITP-0004](/spec/mutual-handshake) | Mutual Handshake | Release Candidate |
+| [RFC-AITP-0005](/spec/tct) | Trust Context Token | Release Candidate |
+| [RFC-AITP-0006](/spec/delegation) | Single-Hop Delegation | Release Candidate |
+| [RFC-AITP-0007](/spec/key-resolution) | Key Resolution | Release Candidate |
+| [RFC-AITP-0008](/spec/revocation) | Revocation | Release Candidate |
+| [RFC-AITP-0009](/spec/security) | Security & Threat Model | Release Candidate |
+| [RFC-AITP-0010](/spec/session-trust-bundle) | Session Trust Bundle | Draft (post-v0.1) |
+| [RFC-AITP-0011](/spec/multihop-delegation) | Multi-hop Delegation | Draft (post-v0.1) |
+| [RFC-AITP-0012](/spec/extensions) | Extensions (ZK, TEE) — reserved | Reserved |
+| [RFC-AITP-0013](/spec/tct-renewal-extension) | TCT Renewal Extension | Planned |
+
+## Reading order
+
+The numbering matches dependency order. Read top-to-bottom:
+
+1. **[RFC-AITP-0001 Core](/spec/core)** — envelope, replay protection, signatures, error codes.
+2. **[RFC-AITP-0002 Identity](/spec/identity)** — identity binding model and trust anchors.
+3. **[RFC-AITP-0003 Manifest](/spec/manifest)** — signed agent self-description.
+4. **[RFC-AITP-0004 Mutual Handshake](/spec/mutual-handshake)** — the four-message A2A handshake.
+5. **[RFC-AITP-0005 TCT](/spec/tct)** — the canonical peer-issued Trust Context Token.
+6. **[RFC-AITP-0006 Delegation](/spec/delegation)** — single-hop delegation between peers.
+7. **[RFC-AITP-0007 Key Resolution](/spec/key-resolution)** — Manifest-first peer-key resolution and identity-issuer key resolution.
+8. **[RFC-AITP-0008 Revocation](/spec/revocation)** — JTI deny lists per issuing peer, key revocation.
+9. **[RFC-AITP-0009 Security](/spec/security)** — threat model and required defenses.
+
+Post-v0.1 (Draft normative text published, NOT part of v0.1 conformance):
+
+- **[RFC-AITP-0010 Session Trust Bundle](/spec/session-trust-bundle)** — multi-agent session scaling.
+- **[RFC-AITP-0011 Multi-hop Delegation](/spec/multihop-delegation)** — chains beyond a single hop.
+
+Reserved (no normative text, numbering pinned for future work):
+
+- **[RFC-AITP-0012 Extensions](/spec/extensions)** — ZK and TEE namespaces.
+
+Planned (RFC number reserved, no document yet):
+
+- **[RFC-AITP-0013 TCT Renewal Extension](/spec/tct-renewal-extension)** —
+  standardization of the shortened renewal endpoint described
+  non-normatively in
+  [RFC-AITP-0004 §8.1](mutual-handshake#81-non-normative-shortened-renewal-extension).
+  A stub document exists; no normative text yet.
+
+## RFC lifecycle
+
+`Draft → Review → Release Candidate → Final Comment Period → Accepted` (or `Rejected`).
+
+**Release Candidate** is the editorial stage after Review and before FCP: the RFC text is substantively complete, the version carries an `rc.N` suffix (e.g. `0.1.0-rc.3`), and further changes are limited to clarifications, KAT vectors, and conformance fixtures. RC can iterate (rc.1, rc.2, …) as implementer feedback surfaces issues. Promotion to FCP requires all required KAT vectors present, the conformance fixture set complete for the RFC's normative surfaces, and at least one implementation passing the core conformance tier. See [governance/RFC-PROCESS.md](../governance/RFC-PROCESS) for the full stage definitions.

@@ -1,0 +1,125 @@
+---
+title: "Implementer Quickstart"
+---
+
+
+A one-page reading order for someone building an AITP peer agent. The
+authoritative source is the RFC set; this page just sequences them with
+context so you don't end up reading them backwards.
+
+---
+
+## Read in this order
+
+1. **[`docs/architecture.md`](architecture)** — orient first. The
+   problem, the shape, the flows, where state lives, and the big
+   invariant. Skip nothing here; it makes the RFCs ~30 % faster to read.
+
+2. **[RFC-AITP-0001 Core](/spec/core)** — primitives.
+   The signed envelope, replay protection (`message_id` dedup +
+   timestamp window), JCS canonical signing input, base64url rules,
+   error codes, and the `aid:pubkey:<43-char>` format. Implement the
+   envelope first.
+
+3. **[RFC-AITP-0002 Identity](/spec/identity)** —
+   proofs. OIDC (with `aud` and `cnf.jkt`) and pinned-key (with the
+   five-field handshake-bound proof input). The verifying party is
+   always another peer, never a third party.
+
+4. **[RFC-AITP-0003 Manifest](/spec/manifest)** —
+   discovery. The signed self-description served at
+   `/.well-known/aitp-manifest`. Verify in the order listed in §5; the
+   bootstrap order matters.
+
+5. **[RFC-AITP-0004 Mutual Handshake](/spec/mutual-handshake)**
+   — the protocol's hot path. Four messages, two round trips. §5
+   defines the verification sequence; §4 defines the TCT-issuance and
+   grant-intersection rules.
+
+6. **[RFC-AITP-0005 TCT](/spec/tct)** — the output
+   artifact. Signed by the issuing peer, audience-bound, capability-
+   scoped, with `binding.cnf` for downstream PoP. Verified locally
+   using only the issuing peer's Manifest key, your own AID, and the
+   current time.
+
+7. **[RFC-AITP-0006 Delegation](/spec/delegation)** —
+   single-hop. Multi-hop is specified in RFC-AITP-0011 (Draft,
+   post-v0.1) and is NOT part of v0.1 conformance. Verify
+   scope ⊆ grant_proof.capabilities.
+
+8. **[RFC-AITP-0007 Key Resolution](/spec/key-resolution)**
+   — operational. Manifest-first for peer keys; cache → pinned →
+   well-known for issuer keys. Read §3 carefully:
+   `key_resolution.fail_mode` and `revocation_policy.mode` are
+   different fields with different semantics.
+
+9. **[RFC-AITP-0008 Revocation](/spec/revocation)** —
+   operational. Per-issuing-peer JTI deny lists. Each agent revokes
+   only what it issued; consumers consult the issuer's deny list.
+
+10. **[RFC-AITP-0009 Security](/spec/security)** —
+    review what you've learned. The threat model is the integration
+    test for whether you understood the protocol.
+
+**Skip RFC-AITP-0010 through 0013** until v0.2. RFCs 0010 and 0011
+have Draft normative text but are NOT part of v0.1 conformance — they
+target v0.2. RFC-AITP-0012 is fully reserved with no normative text,
+and RFC-AITP-0013 (TCT Renewal Extension) is a Planned stub.
+v0.1 implementations MUST NOT depend on the post-v0.1 drafts.
+
+RFC-AITP-0001 through 0009 are at **Release Candidate** status
+(`0.1.0-rc.3`): the wire format is stable for v0.1, with changes
+limited to clarifications and conformance material. See
+[governance/RFC-PROCESS.md](../governance/RFC-PROCESS) for the
+lifecycle.
+
+---
+
+## Implementation gotcha: always decode before hashing
+
+> Every PoP signing input in AITP v0.1 hashes the *decoded raw bytes*, never the
+> base64url string. This applies to:
+>
+> - Manifest PoP challenges ([RFC-AITP-0003 §3](/spec/manifest))
+> - Handshake PoP nonces ([RFC-AITP-0004 §3](/spec/mutual-handshake))
+> - Downstream TCT PoP nonces ([RFC-AITP-0005 §6.1](/spec/tct))
+> - Pinned-key identity proof input ([RFC-AITP-0002 §3.1](/spec/identity))
+>
+> The unified rule lives in [RFC-AITP-0001 §5.4.2](/spec/core#542-pop-signing-input-convention):
+>
+> ```
+> hash_input = sha256(base64url_decode(nonce_or_challenge))
+> ```
+>
+> Implementations that hash the ASCII form will be internally consistent but will
+> fail cross-implementation verification — the exact pattern that caused the
+> alpha.4 PoP nonce bug and the beta.1 Manifest PoP bug in the reference
+> implementation. Add a KAT cross-check for all four code paths against
+> `kat-manifest-pop-001` in
+> [`schemas/conformance/known-answer/jcs-sha256.json`](../schemas/conformance/known-answer/jcs-sha256.json).
+
+---
+
+## Companions
+
+- [`docs/integration-guide.md`](integration-guide) — Python
+  pseudocode for verifying a peer-issued TCT (signature, audience,
+  expiry, unknown-field rejection).
+- [`docs/operational-guidance.md`](operational-guidance) —
+  non-normative patterns for renewal, rotation, cache TTLs, and rate
+  limiting.
+- [`docs/threat-model.md`](threat-model) — distilled v0.1 threat
+  surface.
+- [`docs/GLOSSARY.md`](GLOSSARY) — terminology quick reference.
+
+---
+
+## Conformance
+
+When implementing, verify against:
+
+- [`schemas/json/`](../schemas/json/) — canonical JSON Schemas.
+- [`schemas/conformance/`](../schemas/conformance/) — pass/fail behavioral
+  fixtures (`env-*`, `man-*`, `mh-*`, `id-*`, `tct-*`, `rev-*`, `del-*`).
+
+`make validate` runs the schema and example checks locally.

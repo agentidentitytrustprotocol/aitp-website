@@ -1,0 +1,4 @@
+{
+  "title": "Control Plane",
+  "pages": ["index", "api", "integration-playground", "deploy", "..."]
+}
