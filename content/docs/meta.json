@@ -1,0 +1,4 @@
+{
+  "title": "Documentation",
+  "pages": ["index", "architecture", "implementer-quickstart", "integration-guide", "discovery", "operational-guidance", "threat-model", "non-goals", "glossary", "..."]
+}

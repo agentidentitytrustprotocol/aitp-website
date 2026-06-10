@@ -1,0 +1,4 @@
+{
+  "title": "Specification",
+  "pages": ["index", "core", "identity", "manifest", "mutual-handshake", "tct", "delegation", "key-resolution", "revocation", "security", "session-trust-bundle", "multihop-delegation", "extensions", "tct-renewal-extension", "..."]
+}

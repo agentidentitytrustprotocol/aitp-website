@@ -1,0 +1,103 @@
+name: Sync Docs from All Repos
+
+on:
+  # Triggered by any source repo via repository_dispatch
+  repository_dispatch:
+    types: [docs-updated]
+
+  # Manual trigger
+  workflow_dispatch:
+
+  # Fallback: scheduled sync every 6 hours
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout website repo
+        uses: actions/checkout@v5
+
+      # Source-repo checkouts. Each `path` MUST be `<repo-name>-repo` so that
+      # scripts/sync-content.sh resolves it (resolve_repo checks <name>-repo first).
+      - name: Checkout spec repo
+        uses: actions/checkout@v5
+        with:
+          repository: agentidentitytrustprotocol/agentidentitytrustprotocol
+          path: agentidentitytrustprotocol-repo
+          sparse-checkout: |
+            docs
+            rfcs
+            registries
+
+      - name: Checkout implementation repo (aitp-rs)
+        uses: actions/checkout@v5
+        with:
+          repository: agentidentitytrustprotocol/aitp-rs
+          path: aitp-rs-repo
+          sparse-checkout: |
+            docs
+            README.md
+
+      - name: Checkout control-plane repo
+        uses: actions/checkout@v5
+        with:
+          repository: agentidentitytrustprotocol/aitp-control-plane
+          path: aitp-control-plane-repo
+          sparse-checkout: |
+            docs
+            README.md
+
+      - name: Checkout playground repo
+        uses: actions/checkout@v5
+        with:
+          repository: agentidentitytrustprotocol/aitp-playground
+          path: aitp-playground-repo
+          sparse-checkout: |
+            docs
+            README.md
+
+      - name: Checkout console repo
+        uses: actions/checkout@v5
+        with:
+          repository: agentidentitytrustprotocol/aitp-ui-console
+          path: aitp-ui-console-repo
+          sparse-checkout: |
+            docs
+            README.md
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Sync content
+        run: |
+          chmod +x scripts/sync-content.sh
+          ./scripts/sync-content.sh
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Create PR with updated content
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'docs: sync content from source repos'
+          title: 'docs: sync content from source repos'
+          body: |
+            Automated sync of documentation from the AITP source repos:
+            - **Spec** (`agentidentitytrustprotocol`) — docs, RFCs, registries
+            - **Implementation** (`aitp-rs`) — reference-impl docs + SDK bindings
+            - **Control Plane** (`aitp-control-plane`) — service docs
+            - **Playground** (`aitp-playground`) — scenario harness docs
+            - **Console** (`aitp-ui-console`) — console docs (noindex)
+          branch: automated/sync-docs
+          delete-branch: true
