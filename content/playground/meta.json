@@ -1,4 +1,4 @@
 {
   "title": "Playground",
-  "pages": ["index", "getting-started", "scenarios", "agents", "runner", "architecture", "llm-providers", "aitp-integration", "docker", "testing", "..."]
+  "pages": ["index", "getting-started", "scenarios", "capabilities", "control-plane", "observability", "architecture", "aitp-integration", "..."]
 }

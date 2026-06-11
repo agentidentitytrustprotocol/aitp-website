@@ -8,7 +8,7 @@ Rust reference implementation of the **Agent Identity & Trust Protocol (AITP)**.
 
 > **Status: v0.1.0** — Tracks AITP specification v0.1.0-rc.1.
 > 44/44 conformance fixtures pass (37 core + 7 draft under feature flags).
-> See [`docs/conformance-matrix.md`](/implementation/conformance-matrix) for the
+> See [`docs/conformance.md`](/implementation/conformance) for the
 > per-fixture breakdown and [`CHANGELOG.md`](/implementation/CHANGELOG) for the full history.
 
 ## What is AITP?
@@ -48,7 +48,7 @@ aitp-rs/
 │   └── observability/       tracing / metrics integration example
 ├── tools/                   fixture- and example-minting binaries
 ├── adapters/                example conformance adapters in other languages
-├── docs/design/             architectural decisions and design notes
+├── docs/                    implementation guides + design/ decision notes
 └── scripts/                 build and release helpers
 ```
 
@@ -139,7 +139,7 @@ The runner enforces a **v0.1 conformance gate**: a fixture marked
 `required_for_v0_1` that fails — or is SKIPped because the adapter
 lacks the op — makes `aitp-conformance run` exit non-zero, so CI
 cannot regress required coverage to a silent SKIP. A full per-fixture
-breakdown is in [`docs/conformance-matrix.md`](/implementation/conformance-matrix).
+breakdown is in [`docs/conformance.md`](/implementation/conformance).
 
 ## Quick start
 
@@ -181,16 +181,23 @@ cargo doc --workspace --no-deps --all-features
 the same checks plus `cargo deny` and `cargo audit` on Linux + macOS +
 Windows.
 
-## Design documents
+## Documentation
 
-Read these before contributing:
+[`docs/README.md`](/implementation/README) is the index and the entry point.
+Highlights:
 
-- [`docs/design/00-architecture.md`](design/00-architecture) — workspace structure rationale
-- [`docs/design/01-jcs.md`](design/01-jcs) — JSON canonicalization strategy and test vectors
-- [`docs/design/02-conformance-adapter.md`](design/02-conformance-adapter) — conformance runner design
-- [`docs/design/03-handshake-transcripts.md`](design/03-handshake-transcripts) — four-message exchange in detail
-- [`docs/conformance-matrix.md`](/implementation/conformance-matrix) — per-fixture conformance status
+- [`docs/architecture.md`](/implementation/architecture) — topology, crate map, and the workspace-split rationale
+- [`docs/jcs.md`](/implementation/jcs) — JSON canonicalization strategy and test vectors
+- [`docs/conformance.md`](/implementation/conformance) — NDJSON adapter protocol + the per-fixture matrix
+- [`docs/handshake-transcripts.md`](/implementation/handshake-transcripts) — four-message exchange, byte by byte
+- [`docs/session-bundle.md`](/implementation/session-bundle) · [`docs/multihop-delegation.md`](/implementation/multihop-delegation) · [`docs/tct-renewal.md`](/implementation/tct-renewal) — draft, opt-in extensions
+- [`docs/sdk-python.md`](/implementation/sdk-python) · [`docs/sdk-node.md`](/implementation/sdk-node) — SDK feature guides
+- [`docs/transport-hardening.md`](/implementation/transport-hardening) — HTTP-transport hardening register
 - [`plans/defered/deferred.md`](plans/defered/deferred) — declined / out-of-scope items
+
+The protocol itself is defined **normatively** by the
+[AITP RFCs](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/rfcs);
+docs here point to the relevant RFC section rather than restating it.
 
 ## Roadmap
 

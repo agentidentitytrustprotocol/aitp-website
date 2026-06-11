@@ -1,4 +1,4 @@
 {
   "title": "Implementation",
-  "pages": ["index", "architecture", "conformance-matrix", "transport-hardening", "design", "..."]
+  "pages": ["index", "architecture", "jcs", "handshake-transcripts", "session-bundle", "multihop-delegation", "tct-renewal", "conformance", "transport-hardening", "..."]
 }

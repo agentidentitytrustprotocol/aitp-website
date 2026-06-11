@@ -1,4 +1,4 @@
 {
   "title": "Console",
-  "pages": ["index", "architecture", "development", "conventions", "proxies", "deployment", "testing", "..."]
+  "pages": ["index", "architecture", "features", "conventions", "proxies", "..."]
 }
