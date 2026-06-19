@@ -29,6 +29,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: agentidentitytrustprotocol/agentidentitytrustprotocol
+          token: ${{ secrets.AITP_WEBSITE_SYNC_TOKEN }}
           path: agentidentitytrustprotocol-repo
           sparse-checkout: |
             docs
@@ -39,6 +40,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: agentidentitytrustprotocol/aitp-rs
+          token: ${{ secrets.AITP_WEBSITE_SYNC_TOKEN }}
           path: aitp-rs-repo
           sparse-checkout: |
             docs
@@ -48,6 +50,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: agentidentitytrustprotocol/aitp-control-plane
+          token: ${{ secrets.AITP_WEBSITE_SYNC_TOKEN }}
           path: aitp-control-plane-repo
           sparse-checkout: |
             docs
@@ -57,6 +60,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: agentidentitytrustprotocol/aitp-playground
+          token: ${{ secrets.AITP_WEBSITE_SYNC_TOKEN }}
           path: aitp-playground-repo
           sparse-checkout: |
             docs
@@ -66,6 +70,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: agentidentitytrustprotocol/aitp-ui-console
+          token: ${{ secrets.AITP_WEBSITE_SYNC_TOKEN }}
           path: aitp-ui-console-repo
           sparse-checkout: |
             docs
@@ -90,6 +95,7 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.AITP_WEBSITE_SYNC_TOKEN }}
           commit-message: 'docs: sync content from source repos'
           title: 'docs: sync content from source repos'
           body: |
