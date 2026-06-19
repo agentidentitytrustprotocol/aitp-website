@@ -4,21 +4,21 @@ description: "AITP RFC specifications"
 ---
 
 
-This directory contains the normative RFCs that define the Agent Identity & Trust Protocol (AITP). AITP is an **agent-to-agent (A2A)** trust protocol; v0.1 is the first published version.
+This directory contains the normative RFCs that define the Agent Identity & Trust Protocol (AITP). AITP is an **agent-to-agent (A2A)** trust protocol; the current revision is **`aitp/0.2`** (v0.1 was the first published version — v0.2 is a breaking revision that re-serializes the portable trust artifacts as compact JWS and adds cryptographic agility; see [RFC-AITP-0001 §1](core#1-status-of-this-memo)).
 
 | RFC | Title | Status |
 |---|---|---|
-| [RFC-AITP-0001](/spec/core) | Core — envelope, signatures, replay, error codes | Release Candidate |
-| [RFC-AITP-0002](/spec/identity) | Identity Binding | Release Candidate |
-| [RFC-AITP-0003](/spec/manifest) | Agent Manifest | Release Candidate |
-| [RFC-AITP-0004](/spec/mutual-handshake) | Mutual Handshake | Release Candidate |
-| [RFC-AITP-0005](/spec/tct) | Trust Context Token | Release Candidate |
-| [RFC-AITP-0006](/spec/delegation) | Single-Hop Delegation | Release Candidate |
-| [RFC-AITP-0007](/spec/key-resolution) | Key Resolution | Release Candidate |
-| [RFC-AITP-0008](/spec/revocation) | Revocation | Release Candidate |
-| [RFC-AITP-0009](/spec/security) | Security & Threat Model | Release Candidate |
-| [RFC-AITP-0010](/spec/session-trust-bundle) | Session Trust Bundle | Draft (post-v0.1) |
-| [RFC-AITP-0011](/spec/multihop-delegation) | Multi-hop Delegation | Draft (post-v0.1) |
+| [RFC-AITP-0001](/spec/core) | Core — envelope, signatures, replay, error codes | v0.2 Draft |
+| [RFC-AITP-0002](/spec/identity) | Identity Binding | v0.2 Draft |
+| [RFC-AITP-0003](/spec/manifest) | Agent Manifest | v0.2 Draft |
+| [RFC-AITP-0004](/spec/mutual-handshake) | Mutual Handshake | v0.2 Draft |
+| [RFC-AITP-0005](/spec/tct) | Trust Context Token | v0.2 Draft |
+| [RFC-AITP-0006](/spec/delegation) | Single-Hop Delegation | v0.2 Draft |
+| [RFC-AITP-0007](/spec/key-resolution) | Key Resolution | v0.2 Draft |
+| [RFC-AITP-0008](/spec/revocation) | Revocation | v0.2 Draft |
+| [RFC-AITP-0009](/spec/security) | Security & Threat Model | v0.2 Draft |
+| [RFC-AITP-0010](/spec/session-trust-bundle) | Session Trust Bundle | Draft (opt-in) |
+| [RFC-AITP-0011](/spec/multihop-delegation) | Multi-hop Delegation | Draft (opt-in) |
 | [RFC-AITP-0012](/spec/extensions) | Extensions (ZK, TEE) — reserved | Reserved |
 | [RFC-AITP-0013](/spec/tct-renewal-extension) | TCT Renewal Extension | Planned |
 
@@ -36,7 +36,7 @@ The numbering matches dependency order. Read top-to-bottom:
 8. **[RFC-AITP-0008 Revocation](/spec/revocation)** — JTI deny lists per issuing peer, key revocation.
 9. **[RFC-AITP-0009 Security](/spec/security)** — threat model and required defenses.
 
-Post-v0.1 (Draft normative text published, NOT part of v0.1 conformance):
+Opt-in (Draft normative text published, NOT part of v0.2 core conformance):
 
 - **[RFC-AITP-0010 Session Trust Bundle](/spec/session-trust-bundle)** — multi-agent session scaling.
 - **[RFC-AITP-0011 Multi-hop Delegation](/spec/multihop-delegation)** — chains beyond a single hop.
@@ -57,4 +57,6 @@ Planned (RFC number reserved, no document yet):
 
 `Draft → Review → Release Candidate → Final Comment Period → Accepted` (or `Rejected`).
 
-**Release Candidate** is the editorial stage after Review and before FCP: the RFC text is substantively complete, the version carries an `rc.N` suffix (e.g. `0.1.0-rc.3`), and further changes are limited to clarifications, KAT vectors, and conformance fixtures. RC can iterate (rc.1, rc.2, …) as implementer feedback surfaces issues. Promotion to FCP requires all required KAT vectors present, the conformance fixture set complete for the RFC's normative surfaces, and at least one implementation passing the core conformance tier. See [governance/RFC-PROCESS.md](../governance/RFC-PROCESS) for the full stage definitions.
+The `aitp/0.2` revision is a breaking change (compact-JWS trust artifacts, cryptographic agility), so RFCs 0001–0009 returned to **Draft** (shown as "v0.2 Draft" above, version `0.2.0-draft`) and re-progress through the lifecycle; the v0.1 line completed Release Candidate at `0.1.0-rc.3`.
+
+**Release Candidate** is the editorial stage after Review and before FCP: the RFC text is substantively complete, the version carries an `rc.N` suffix (e.g. `0.2.0-rc.1`; the v0.1 line reached `0.1.0-rc.3`), and further changes are limited to clarifications, KAT vectors, and conformance fixtures. RC can iterate (rc.1, rc.2, …) as implementer feedback surfaces issues. Promotion to FCP requires all required KAT vectors present, the conformance fixture set complete for the RFC's normative surfaces, and at least one implementation passing the core conformance tier. See [governance/RFC-PROCESS.md](../governance/RFC-PROCESS) for the full stage definitions.
