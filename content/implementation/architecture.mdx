@@ -120,7 +120,9 @@ before honoring it.
 aitp                       facade — re-exports the protocol surface
 ├── aitp-core              primitives: Aid, JCS, base64url, Timestamp,
 │                          ExtensionsMap, AitpEnvelope, ErrorCode
-├── aitp-crypto            Ed25519 (verify_strict) + JWK thumbprint
+├── aitp-crypto            Ed25519 (verify_strict) + P-256/ES256
+│                          (canonical low-S) + RSA-2048 floor (OIDC/
+│                          DPoP paths) + JWK thumbprint
 ├── aitp-envelope          sign_envelope + verify_envelope_signature —
 │                          sync, no I/O; reused by the language bindings
 ├── aitp-manifest          ManifestBuilder + verify_manifest
@@ -134,6 +136,8 @@ aitp                       facade — re-exports the protocol surface
 └── aitp-transport-http    ManifestServer + HandshakeServer (axum) +
                            ManifestFetcher + JwksFetcher (reqwest)
 
+aitp-cli                   `aitp` binary — offline keygen / aid /
+                           tct inspect+verify / manifest verify
 aitp-conformance           runner + Adapter trait + SubprocessAdapter
                            + InProcessRustAdapter
 aitp-rs-adapter            subprocess conformance adapter, Tier A/B/C/D
@@ -209,10 +213,10 @@ wrappers in the facade later without changing the protocol crates.
 - **Workspace deps only.** Every third-party crate is pinned once in the
   root `[workspace.dependencies]` and referenced via `{ workspace = true }`,
   so the lock holds exactly one version of each — upgrades are one-line.
-- **MSRV 1.88**, toolchain pinned to `1.89.0` in `rust-toolchain.toml`.
-  MSRV rose from 1.75 once transitive deps (`time`, `icu_*`,
-  `idna_adapter`, `clap_lex`) began requiring edition 2024; `cargo msrv
-  verify` gates it in CI.
+- **MSRV 1.89**, in lockstep with the `1.89.0` toolchain pin in
+  `rust-toolchain.toml`. MSRV rose from 1.75 once transitive deps
+  (`time`, `icu_*`, `idna_adapter`, `clap_lex`) began requiring
+  edition 2024; `cargo msrv verify` gates it in CI.
 - **Dual MIT OR Apache-2.0** — standard Rust convention (same as `tokio`,
   `serde`, `tower`), friendlier to enterprise adoption than either alone.
 - **`#![forbid(unsafe_code)]`** on every workspace crate (the binding
@@ -315,8 +319,7 @@ bindings and runs that suite.
 - [`sdk-python.md`](sdk-python) / [`sdk-node.md`](sdk-node) and
   [`transport-hardening.md`](transport-hardening) — SDK guides and the
   HTTP-transport hardening register
-- [`../plans/defered/deferred.md`](../plans/defered/deferred) — live
-  tracker for open items, deferred work, and spec-side dependencies
+- [`../CHANGELOG.md`](../CHANGELOG) — release history and current direction
 - The [AITP RFCs](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/rfcs)
   themselves — the protocol is normatively defined there; this
   implementation tracks them
