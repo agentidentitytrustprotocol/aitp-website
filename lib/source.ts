@@ -7,11 +7,10 @@ import {
   controlPlane,
   playground,
   consoleDocs,
-} from '@/.source';
-import { resolveFiles } from 'fumadocs-mdx';
+} from '@/.source/server';
 import { loader } from 'fumadocs-core/source';
 import type { ReactElement } from 'react';
-import type { TableOfContents } from 'fumadocs-core/server';
+import type { TableOfContents } from 'fumadocs-core/toc';
 
 export interface MdxPageData {
   title: string;
@@ -25,42 +24,40 @@ export interface MdxPageData {
 
 export const docsSource = loader({
   baseUrl: '/docs',
-  source: { files: resolveFiles({ docs: docs.docs, meta: docs.meta }) },
+  source: docs.toFumadocsSource(),
 });
 
 export const specSource = loader({
   baseUrl: '/spec',
-  source: { files: resolveFiles({ docs: spec.docs, meta: spec.meta }) },
+  source: spec.toFumadocsSource(),
 });
 
 export const registrySource = loader({
   baseUrl: '/registry',
-  source: { files: resolveFiles({ docs: registry.docs, meta: registry.meta }) },
+  source: registry.toFumadocsSource(),
 });
 
 export const implementationSource = loader({
   baseUrl: '/implementation',
-  source: {
-    files: resolveFiles({ docs: implementation.docs, meta: implementation.meta }),
-  },
+  source: implementation.toFumadocsSource(),
 });
 
 export const sdksSource = loader({
   baseUrl: '/sdks',
-  source: { files: resolveFiles({ docs: sdks.docs, meta: sdks.meta }) },
+  source: sdks.toFumadocsSource(),
 });
 
 export const controlPlaneSource = loader({
   baseUrl: '/control-plane',
-  source: { files: resolveFiles({ docs: controlPlane.docs, meta: controlPlane.meta }) },
+  source: controlPlane.toFumadocsSource(),
 });
 
 export const playgroundSource = loader({
   baseUrl: '/playground',
-  source: { files: resolveFiles({ docs: playground.docs, meta: playground.meta }) },
+  source: playground.toFumadocsSource(),
 });
 
 export const consoleSource = loader({
   baseUrl: '/console',
-  source: { files: resolveFiles({ docs: consoleDocs.docs, meta: consoleDocs.meta }) },
+  source: consoleDocs.toFumadocsSource(),
 });

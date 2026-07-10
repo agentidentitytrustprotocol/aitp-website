@@ -1,4 +1,4 @@
-import type { LinkItemType } from 'fumadocs-ui/layouts/docs';
+import type { LinkItemType } from 'fumadocs-ui/layouts/shared';
 
 export const sharedLinks: LinkItemType[] = [
   { type: 'main', text: 'Docs', url: '/docs' },

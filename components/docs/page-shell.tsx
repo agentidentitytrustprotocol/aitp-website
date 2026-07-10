@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { TableOfContents } from 'fumadocs-core/server';
+import type { TableOfContents } from 'fumadocs-core/toc';
 import type { Root } from 'fumadocs-core/page-tree';
 import Link from 'next/link';
 import { Pencil } from 'lucide-react';

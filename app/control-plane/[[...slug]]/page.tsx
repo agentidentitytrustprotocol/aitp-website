@@ -13,7 +13,7 @@ export default async function Page(props: {
 
   const data = page.data as unknown as MdxPageData;
   const MDX = data.body;
-  const editUrl = `https://github.com/agentidentitytrustprotocol/aitp-website/edit/main/content/control-plane/${page.file.path}`;
+  const editUrl = `https://github.com/agentidentitytrustprotocol/aitp-website/edit/main/content/control-plane/${page.path}`;
 
   return (
     <PageShell

@@ -1,7 +1,7 @@
 'use client';
 
 import { AnchorProvider, TOCItem } from 'fumadocs-core/toc';
-import type { TableOfContents } from 'fumadocs-core/server';
+import type { TableOfContents } from 'fumadocs-core/toc';
 
 interface TocPanelProps {
   toc: TableOfContents;
