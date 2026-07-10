@@ -20,13 +20,25 @@ jobs:
       pull-requests: write
 
     steps:
+      # Author the sync PR as the aitp-deps-bot App so its checks run without
+      # manual approval (a PR opened with the default GITHUB_TOKEN is gated as
+      # `action_required` and never triggers CI on its own).
+      - name: Mint GitHub App token
+        id: app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.AITP_BOT_APP_ID }}
+          private-key: ${{ secrets.AITP_BOT_PRIVATE_KEY }}
+
       - name: Checkout website repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app.outputs.token }}
 
       # Source-repo checkouts. Each `path` MUST be `<repo-name>-repo` so that
       # scripts/sync-content.sh resolves it (resolve_repo checks <name>-repo first).
       - name: Checkout spec repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: agentidentitytrustprotocol/agentidentitytrustprotocol
           path: agentidentitytrustprotocol-repo
@@ -36,7 +48,7 @@ jobs:
             registries
 
       - name: Checkout implementation repo (aitp-rs)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: agentidentitytrustprotocol/aitp-rs
           path: aitp-rs-repo
@@ -45,7 +57,7 @@ jobs:
             README.md
 
       - name: Checkout control-plane repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: agentidentitytrustprotocol/aitp-control-plane
           path: aitp-control-plane-repo
@@ -54,7 +66,7 @@ jobs:
             README.md
 
       - name: Checkout playground repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: agentidentitytrustprotocol/aitp-playground
           path: aitp-playground-repo
@@ -63,7 +75,7 @@ jobs:
             README.md
 
       - name: Checkout console repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: agentidentitytrustprotocol/aitp-ui-console
           path: aitp-ui-console-repo
@@ -72,7 +84,7 @@ jobs:
             README.md
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -88,8 +100,9 @@ jobs:
 
       - name: Create PR with updated content
         if: steps.changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
+          token: ${{ steps.app.outputs.token }}
           commit-message: 'docs: sync content from source repos'
           title: 'docs: sync content from source repos'
           body: |
