@@ -16,7 +16,7 @@
     "@eslint/eslintrc": "^3.3.5",
     "@types/mdx": "^2.0.14",
     "fumadocs-core": "^15.0.0",
-    "fumadocs-mdx": "^11.0.0",
+    "fumadocs-mdx": "^15.1.0",
     "fumadocs-ui": "^15.0.0",
     "lucide-react": "^0.541.0",
     "mermaid": "^11.16.0",
