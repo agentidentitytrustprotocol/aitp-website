@@ -7,12 +7,17 @@ updates:
       interval: weekly
       day: monday
     groups:
+      # One PR for minor+patch across the tree; majors held separately.
       minor-and-patch:
         update-types: ['minor', 'patch']
-        exclude-patterns: ['next', 'react', 'react-dom']
+      major-updates:
+        update-types: ['major']
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
       day: monday
+    groups:
+      actions:
+        patterns: ["*"]
