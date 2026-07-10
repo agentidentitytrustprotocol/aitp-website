@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # Fumadocs / Next.js site — keep npm deps current, grouped to reduce noise.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']
+        exclude-patterns: ['next', 'react', 'react-dom']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
