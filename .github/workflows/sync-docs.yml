@@ -20,8 +20,20 @@ jobs:
       pull-requests: write
 
     steps:
+      # Author the sync PR as the aitp-deps-bot App so its checks run without
+      # manual approval (a PR opened with the default GITHUB_TOKEN is gated as
+      # `action_required` and never triggers CI on its own).
+      - name: Mint GitHub App token
+        id: app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.AITP_BOT_APP_ID }}
+          private-key: ${{ secrets.AITP_BOT_PRIVATE_KEY }}
+
       - name: Checkout website repo
         uses: actions/checkout@v5
+        with:
+          token: ${{ steps.app.outputs.token }}
 
       # Source-repo checkouts. Each `path` MUST be `<repo-name>-repo` so that
       # scripts/sync-content.sh resolves it (resolve_repo checks <name>-repo first).
@@ -90,6 +102,7 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ steps.app.outputs.token }}
           commit-message: 'docs: sync content from source repos'
           title: 'docs: sync content from source repos'
           body: |
