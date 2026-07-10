@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.5",
