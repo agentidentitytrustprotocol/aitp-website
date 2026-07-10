@@ -14,7 +14,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/eslintrc": "^3.3.6",
     "@types/mdx": "^2.0.14",
     "fumadocs-core": "^16.11.2",
     "fumadocs-mdx": "^15.1.0",
