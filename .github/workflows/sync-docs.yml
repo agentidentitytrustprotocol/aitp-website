@@ -25,7 +25,7 @@ jobs:
       # `action_required` and never triggers CI on its own).
       - name: Mint GitHub App token
         id: app
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.AITP_BOT_APP_ID }}
           private-key: ${{ secrets.AITP_BOT_PRIVATE_KEY }}
