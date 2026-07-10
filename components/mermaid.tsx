@@ -8,6 +8,9 @@ export function Mermaid({ chart }: { chart: string }) {
   const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
 
+  // One-shot mount flag for hydration-safe rendering; the setState runs once
+  // on mount (empty deps) and does not cascade.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {

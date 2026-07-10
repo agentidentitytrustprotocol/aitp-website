@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { Root } from 'fumadocs-core/page-tree';
-import { findNeighbour } from 'fumadocs-core/server';
+import { findNeighbour } from 'fumadocs-core/page-tree';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface PageNavProps {

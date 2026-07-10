@@ -25,6 +25,9 @@ export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
   const pathname = usePathname();
 
+  // One-shot mount flag for hydration-safe theming; the setState runs once on
+  // mount (empty deps) and does not cascade.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   const isActive = (href: string) =>
