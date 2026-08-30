@@ -36,11 +36,11 @@ artifact. Each has its own RFC, JSON Schema, and a crate.
 
 | Type | RFC | Crate | Purpose |
 |---|---|---|---|
-| **Manifest** | [RFC-AITP-0003](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0003-manifest.md) | [`aitp-manifest`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-manifest) | Self-description an agent publishes at `/.well-known/aitp-manifest`: which handshake endpoint to hit, which identity provider it uses, which capabilities it offers/requires |
-| **TCT (Trust Context Token)** | [RFC-AITP-0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md) | [`aitp-tct`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct) | A signed, audience-bound, capability-scoped grant. Each peer holds the TCT issued to it by its counterpart |
-| **Grant voucher** | [RFC-AITP-0005 §8](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md) | [`aitp-tct`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct) | A companion artifact the TCT issuer mints alongside the TCT (same handshake commit). Lets the subject delegate without anyone reconstructing TCT bytes; replaces the v0.1 `grant_proof` mechanism |
-| **Delegation token** | [RFC-AITP-0006](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0006-delegation.md) | [`aitp-delegation`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-delegation) | Single-hop subdelegation: B holds A's TCT + voucher, issues a derived token to C with a subset of grants, embedding A's voucher verbatim |
-| **Revocation snapshot** | [RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation.md) | [`aitp-tct::revocation`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct/src/revocation.rs) | Periodically-refreshed signed list of revoked TCT JTIs. An empty list is also signed — defends against suppression of fresher snapshots |
+| **Manifest** | [RFC-AITP-0003](/spec/manifest) | [`aitp-manifest`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-manifest) | Self-description an agent publishes at `/.well-known/aitp-manifest`: which handshake endpoint to hit, which identity provider it uses, which capabilities it offers/requires |
+| **TCT (Trust Context Token)** | [RFC-AITP-0005](/spec/tct) | [`aitp-tct`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct) | A signed, audience-bound, capability-scoped grant. Each peer holds the TCT issued to it by its counterpart |
+| **Grant voucher** | [RFC-AITP-0005 §8](/spec/tct) | [`aitp-tct`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct) | A companion artifact the TCT issuer mints alongside the TCT (same handshake commit). Lets the subject delegate without anyone reconstructing TCT bytes; replaces the v0.1 `grant_proof` mechanism |
+| **Delegation token** | [RFC-AITP-0006](/spec/delegation) | [`aitp-delegation`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-delegation) | Single-hop subdelegation: B holds A's TCT + voucher, issues a derived token to C with a subset of grants, embedding A's voucher verbatim |
+| **Revocation snapshot** | [RFC-AITP-0008](/spec/revocation) | [`aitp-tct::revocation`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct/src/revocation.rs) | Periodically-refreshed signed list of revoked TCT JTIs. An empty list is also signed — defends against suppression of fresher snapshots |
 
 ### The two signing profiles
 
@@ -89,7 +89,7 @@ the RFC 7800 `cnf: {"jkt": …}` confirmation claim.
 
 ## The four-message handshake
 
-Defined in [RFC-AITP-0004](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0004-mutual-handshake.md).
+Defined in [RFC-AITP-0004](/spec/mutual-handshake).
 Implemented in [`aitp-handshake`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-handshake) as two
 state machines, `Initiator` and `Responder`:
 

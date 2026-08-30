@@ -41,8 +41,10 @@ Content originates in 5 source repos (siblings under `../`) and flows through:
    Targets that are themselves synced become site routes; everything else
    becomes a canonical GitHub URL. Origin-awareness is what makes both cases
    correct — textually, `docs/sdk-python.md` (a page, at `/sdks/python`) and
-   `docs/design/foo.md` (not synced) are indistinguishable.
-   `npm run check-links` guards the result in CI.
+   `docs/design/foo.md` (not synced) are indistinguishable. The same map also
+   redirects the full GitHub URLs source repos use to cite each other, so a
+   reader following an RFC reference stays on the site. `npm run check-links`
+   guards the result in CI.
 4. **`source.config.ts`** — defines 8 `defineDocs()` collections.
 5. **`npx fumadocs-mdx`** (or `next build`) — generates `.source/index.ts`.
 6. **`lib/source.ts`** — creates 8 `loader()` instances. Uses the `resolveFiles()`
