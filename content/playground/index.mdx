@@ -55,7 +55,7 @@ One service, ~20 scenarios, each isolating one AITP behavior:
 Beyond the intra-org `/runs` flow above, `POST /hosted-agents` and friends
 spawn a long-lived agent and drive a *cross-domain* handshake/invoke against
 a peer hosted by a different instance of this service — see
-[architecture.md](architecture#hosted-agents-srcaitp_playgroundapihostedpy)
+[architecture.md](/playground/architecture#hosted-agents-srcaitp_playgroundapihostedpy)
 for the full route list.
 
 Everything is optional and degrades cleanly: no LLM key → deterministic
@@ -68,7 +68,7 @@ report "feature not available" instead of crashing. Check
 
 ## Documentation
 
-The reader-facing docs are under [`docs/`](docs/) (also published to the
+The reader-facing docs are under [`docs/`](https://github.com/agentidentitytrustprotocol/aitp-playground/tree/main/docs) (also published to the
 docs site) — start with [architecture.md](/playground/architecture):
 
 - **[Architecture](/playground/architecture)** — components, runtime topology,
@@ -101,10 +101,10 @@ orchestrates. The docs here link out to these rather than restating them:
 - [`aitp-rs`](https://github.com/agentidentitytrustprotocol/aitp-rs) —
   reference Rust runtime; ships the Python SDK from `bindings/aitp-py/`
   (published to PyPI as [`aitp-sdk`](https://pypi.org/project/aitp-sdk/)).
-  Start with its [Python SDK guide](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python).
+  Start with its [Python SDK guide](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md).
 - [`aitp-control-plane`](https://github.com/agentidentitytrustprotocol/aitp-control-plane)
   — the optional Control Plane the playground can talk to; see its
-  [API docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README).
+  [API docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md).
 
 ## Quick start
 
@@ -231,10 +231,10 @@ suites with a coverage floor on Python 3.11 and 3.13 (installing
 run too), and the `AITP_E2E=1` subprocess integration suite.
 `docker.yml` builds/pushes the image to ghcr.io and runs the
 docker-compose e2e stack on `main`. See
-[docs/getting-started.md](getting-started#development--testing)
+[docs/getting-started.md](/playground/getting-started#development--testing)
 for the tier-by-tier map, with deeper detail in
-[internal_docs/testing.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/testing).
+[internal_docs/testing.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/testing.md).
 
 ## License
 
-See [LICENSE](/playground/LICENSE).
+See [LICENSE](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/LICENSE).

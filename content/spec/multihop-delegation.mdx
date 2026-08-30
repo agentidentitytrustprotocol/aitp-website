@@ -8,7 +8,7 @@ description: "RFC-AITP-0011"
 **Document:** RFC-AITP-0011
 **Version:** 0.2.0-draft
 **Status:** Draft
-**Depends on:** [RFC-AITP-0001 Core](core), [RFC-AITP-0005 TCT](tct), [RFC-AITP-0006 Single-Hop Delegation](delegation), [RFC-AITP-0008 Revocation](revocation)
+**Depends on:** [RFC-AITP-0001 Core](/spec/core), [RFC-AITP-0005 TCT](/spec/tct), [RFC-AITP-0006 Single-Hop Delegation](/spec/delegation), [RFC-AITP-0008 Revocation](/spec/revocation)
 
 ---
 
@@ -26,7 +26,7 @@ description: "RFC-AITP-0011"
 
 ## Abstract
 
-[RFC-AITP-0006](delegation) defines single-hop delegation: A peer-issues a TCT and grant voucher to B; B delegates a subset of grants to C; A verifies and peer-issues to C. Multi-hop extends the same model to chains longer than one delegation (A → B → C → D → …) by carrying a `chain` claim inside the final delegation token: an array of **delegation compact JWS strings** (RFC-AITP-0006 §2), one per prior hop, embedded **verbatim**.
+[RFC-AITP-0006](/spec/delegation) defines single-hop delegation: A peer-issues a TCT and grant voucher to B; B delegates a subset of grants to C; A verifies and peer-issues to C. Multi-hop extends the same model to chains longer than one delegation (A → B → C → D → …) by carrying a `chain` claim inside the final delegation token: an array of **delegation compact JWS strings** (RFC-AITP-0006 §2), one per prior hop, embedded **verbatim**.
 
 There are no `DelegationStep` objects and no byte reconstruction anywhere in the chain. Every hop is an ordinary delegation JWS verified over its transmitted bytes; the first hop's authority comes from the grant voucher (RFC-AITP-0005 §8) embedded in the first delegation JWS, exactly as in single-hop. The design preserves single-hop's stateless verifiability: any peer can verify the full chain locally using only Manifest-resolved public keys for each hop's issuer (plus its own key for the root voucher).
 
@@ -34,7 +34,7 @@ There are no `DelegationStep` objects and no byte reconstruction anywhere in the
 
 ## 1. Chain Encoding
 
-A multi-hop delegation token is a delegation compact JWS per [RFC-AITP-0006 §2](delegation#2-delegation-token) whose claims additionally include `chain` and `chain_hash`:
+A multi-hop delegation token is a delegation compact JWS per [RFC-AITP-0006 §2](/spec/delegation#2-delegation-token) whose claims additionally include `chain` and `chain_hash`:
 
 ```json
 {
@@ -86,7 +86,7 @@ D presents `h2` to A. A verifies every hop's JWS, the voucher inside `chain[0]`,
 
 ### 1.3 Relationship to RFC-AITP-0006
 
-The `chain` claim is the multi-hop opt-in marker. [RFC-AITP-0006 §4](delegation#4-verification-rules) (multi-hop guard) requires implementations that have not opted into this RFC to reject any delegation token carrying a `chain` claim with `DELEGATION_MULTIHOP_NOT_SUPPORTED` — a structural rejection before any per-hop processing. Implementations that opt in MUST instead process the token per §2–§6 below, including the §1.1 relaxation under which a chain-bearing token's authority is the chain (terminating in `chain[0]`'s voucher) rather than a directly embedded voucher.
+The `chain` claim is the multi-hop opt-in marker. [RFC-AITP-0006 §4](/spec/delegation#4-verification-rules) (multi-hop guard) requires implementations that have not opted into this RFC to reject any delegation token carrying a `chain` claim with `DELEGATION_MULTIHOP_NOT_SUPPORTED` — a structural rejection before any per-hop processing. Implementations that opt in MUST instead process the token per §2–§6 below, including the §1.1 relaxation under which a chain-bearing token's authority is the chain (terminating in `chain[0]`'s voucher) rather than a directly embedded voucher.
 
 ---
 
@@ -210,12 +210,12 @@ Multi-hop is **opt-in** for v0.2; it is not part of core conformance. An impleme
 
 Conformance fixtures for multi-hop live under `schemas/conformance/del-mh-*.json` (Draft, opt-in — runners not opted into RFC-AITP-0011 MUST report SKIP, not FAIL):
 
-- [`del-mh-001-success.json`](../schemas/conformance/del-mh-001-success.json) — 3-hop happy path (reuses kat-multihop-chain-001 verbatim).
-- [`del-mh-002-scope-inflation.json`](../schemas/conformance/del-mh-002-scope-inflation.json) — adjacent-pair scope check (every signature valid; the outer token's scope re-adds a capability `chain[0]` did not delegate).
-- [`del-mh-003-chain-hash-mismatch.json`](../schemas/conformance/del-mh-003-chain-hash-mismatch.json) — truncation defense (`chain_hash` claim tampered relative to the carried chain).
-- [`del-mh-004-revoked-hop.json`](../schemas/conformance/del-mh-004-revoked-hop.json) — per-hop revocation (`chain[0].jti` is in `chain[0]`'s issuer's deny list).
+- [`del-mh-001-success.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/del-mh-001-success.json) — 3-hop happy path (reuses kat-multihop-chain-001 verbatim).
+- [`del-mh-002-scope-inflation.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/del-mh-002-scope-inflation.json) — adjacent-pair scope check (every signature valid; the outer token's scope re-adds a capability `chain[0]` did not delegate).
+- [`del-mh-003-chain-hash-mismatch.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/del-mh-003-chain-hash-mismatch.json) — truncation defense (`chain_hash` claim tampered relative to the carried chain).
+- [`del-mh-004-revoked-hop.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/del-mh-004-revoked-hop.json) — per-hop revocation (`chain[0].jti` is in `chain[0]`'s issuer's deny list).
 
-KAT vectors `kat-multihop-chain-001` (fixed-seed chain: pinned compact JWS strings for each hop, plus the expected `chain_hash`) and `kat-multihop-truncation-001` (`chain_hash` reference recomputation) live at [`schemas/conformance/known-answer/jcs-sha256.json`](../schemas/conformance/known-answer/jcs-sha256.json). Both vectors are **re-specified for `aitp/0.2`** against the digest-array `chain_hash` form of §5 (the JCS+SHA-256 step now operates on the array of per-entry digests, not on `source_tct_jti` lists); the v0.1 reconstruction-based vectors do not survive.
+KAT vectors `kat-multihop-chain-001` (fixed-seed chain: pinned compact JWS strings for each hop, plus the expected `chain_hash`) and `kat-multihop-truncation-001` (`chain_hash` reference recomputation) live at [`schemas/conformance/known-answer/jcs-sha256.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jcs-sha256.json). Both vectors are **re-specified for `aitp/0.2`** against the digest-array `chain_hash` form of §5 (the JCS+SHA-256 step now operates on the array of per-entry digests, not on `source_tct_jti` lists); the v0.1 reconstruction-based vectors do not survive.
 
 ---
 
@@ -234,10 +234,10 @@ KAT vectors `kat-multihop-chain-001` (fixed-seed chain: pinned compact JWS strin
 
 ## 10. References
 
-- [RFC-AITP-0001 Core](core)
-- [RFC-AITP-0005 TCT](tct)
-- [RFC-AITP-0006 Single-Hop Delegation](delegation)
-- [RFC-AITP-0008 Revocation](revocation)
-- [RFC-AITP-0009 Security](security)
+- [RFC-AITP-0001 Core](/spec/core)
+- [RFC-AITP-0005 TCT](/spec/tct)
+- [RFC-AITP-0006 Single-Hop Delegation](/spec/delegation)
+- [RFC-AITP-0008 Revocation](/spec/revocation)
+- [RFC-AITP-0009 Security](/spec/security)
 - [RFC 7515 — JSON Web Signature](https://datatracker.ietf.org/doc/html/rfc7515)
 - [RFC 8785 — JSON Canonicalization Scheme (JCS)](https://datatracker.ietf.org/doc/html/rfc8785)

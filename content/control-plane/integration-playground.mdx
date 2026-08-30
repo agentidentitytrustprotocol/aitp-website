@@ -51,7 +51,7 @@ TrustOrchestrator at the first match.
 
 The CP **must** include `handshakeEndpoint` on every record. If this call returns
 `[]` or a non-2xx, the scenario fails over to `static` discovery. (Full record
-shape: [`api.md`](api#get-apiregistryagents).)
+shape: [`api.md`](/control-plane/api#get-apiregistryagents).)
 
 ### 2. Telemetry ingestion — `POST /api/events`
 
@@ -66,7 +66,7 @@ playground:
 The CP must: return 2xx quickly; normalize `aid_a`/`aid_b`/`session_id`/`run_id`
 to camelCase internally; de-dupe on event `id` (`ON CONFLICT DO NOTHING`); and
 tolerate unknown event types (record as-is, never 4xx). See
-[`events.md`](events) for which types drive projections and webhooks.
+[`events.md`](/control-plane/events) for which types drive projections and webhooks.
 
 Batch limits still apply: ≤ 256 KiB per request, **≤ 500 events per batch**,
 ≤ 64 KiB per event `payload` — an over-cap batch gets `413 PAYLOAD_TOO_LARGE`,
@@ -77,7 +77,7 @@ split the batch.
 > session/TCT projection and webhook fan-out key on `handshake.complete`. Events
 > are stored and streamed either way, but `completed` projects **no** session.
 > This is a known naming mismatch between the two repos — see
-> [`events.md` § naming nuance](events#sessions-projection). Resolve it on one
+> [`events.md` § naming nuance](/control-plane/events#sessions-projection). Resolve it on one
 > side before relying on session projections from playground telemetry.
 
 ## Endpoints the playground depends on
@@ -111,7 +111,7 @@ record of what those calls depend on.
 
 The playground also **receives** webhook deliveries the CP POSTs to a run-scoped
 URL it registers via `POST /api/webhooks`. The CP signs those with
-`X-AITP-Signature` — see [`api.md` § Webhooks](api#webhooks).
+`X-AITP-Signature` — see [`api.md` § Webhooks](/control-plane/api#webhooks).
 
 Enrollment (`POST /api/registry/enroll` → `POST /api/registry/agents`) is **not**
 called by the playground — agents enroll themselves; the playground only

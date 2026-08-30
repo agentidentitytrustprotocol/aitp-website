@@ -26,8 +26,8 @@ laid out in the [boundary table](#the-two-signing-profiles) below.
 This document covers the topology — what the pieces are and how they
 fit — and then the rationale for why the workspace is split the way it
 is. For the deeper, topic-specific dives, see the sibling docs:
-[`jcs.md`](jcs), [`handshake-transcripts.md`](handshake-transcripts),
-and [`conformance.md`](conformance).
+[`jcs.md`](/implementation/jcs), [`handshake-transcripts.md`](/implementation/handshake-transcripts),
+and [`conformance.md`](/implementation/conformance).
 
 ## The signed wire types
 
@@ -36,11 +36,11 @@ artifact. Each has its own RFC, JSON Schema, and a crate.
 
 | Type | RFC | Crate | Purpose |
 |---|---|---|---|
-| **Manifest** | [RFC-AITP-0003](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0003-manifest) | [`aitp-manifest`](../crates/aitp-manifest) | Self-description an agent publishes at `/.well-known/aitp-manifest`: which handshake endpoint to hit, which identity provider it uses, which capabilities it offers/requires |
-| **TCT (Trust Context Token)** | [RFC-AITP-0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct) | [`aitp-tct`](../crates/aitp-tct) | A signed, audience-bound, capability-scoped grant. Each peer holds the TCT issued to it by its counterpart |
-| **Grant voucher** | [RFC-AITP-0005 §8](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct) | [`aitp-tct`](../crates/aitp-tct) | A companion artifact the TCT issuer mints alongside the TCT (same handshake commit). Lets the subject delegate without anyone reconstructing TCT bytes; replaces the v0.1 `grant_proof` mechanism |
-| **Delegation token** | [RFC-AITP-0006](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0006-delegation) | [`aitp-delegation`](../crates/aitp-delegation) | Single-hop subdelegation: B holds A's TCT + voucher, issues a derived token to C with a subset of grants, embedding A's voucher verbatim |
-| **Revocation snapshot** | [RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation) | [`aitp-tct::revocation`](../crates/aitp-tct/src/revocation.rs) | Periodically-refreshed signed list of revoked TCT JTIs. An empty list is also signed — defends against suppression of fresher snapshots |
+| **Manifest** | [RFC-AITP-0003](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0003-manifest.md) | [`aitp-manifest`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-manifest) | Self-description an agent publishes at `/.well-known/aitp-manifest`: which handshake endpoint to hit, which identity provider it uses, which capabilities it offers/requires |
+| **TCT (Trust Context Token)** | [RFC-AITP-0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md) | [`aitp-tct`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct) | A signed, audience-bound, capability-scoped grant. Each peer holds the TCT issued to it by its counterpart |
+| **Grant voucher** | [RFC-AITP-0005 §8](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md) | [`aitp-tct`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct) | A companion artifact the TCT issuer mints alongside the TCT (same handshake commit). Lets the subject delegate without anyone reconstructing TCT bytes; replaces the v0.1 `grant_proof` mechanism |
+| **Delegation token** | [RFC-AITP-0006](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0006-delegation.md) | [`aitp-delegation`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-delegation) | Single-hop subdelegation: B holds A's TCT + voucher, issues a derived token to C with a subset of grants, embedding A's voucher verbatim |
+| **Revocation snapshot** | [RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation.md) | [`aitp-tct::revocation`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-tct/src/revocation.rs) | Periodically-refreshed signed list of revoked TCT JTIs. An empty list is also signed — defends against suppression of fresher snapshots |
 
 ### The two signing profiles
 
@@ -89,8 +89,8 @@ the RFC 7800 `cnf: {"jkt": …}` confirmation claim.
 
 ## The four-message handshake
 
-Defined in [RFC-AITP-0004](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0004-mutual-handshake).
-Implemented in [`aitp-handshake`](../crates/aitp-handshake) as two
+Defined in [RFC-AITP-0004](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0004-mutual-handshake.md).
+Implemented in [`aitp-handshake`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-handshake) as two
 state machines, `Initiator` and `Responder`:
 
 ```
@@ -250,11 +250,11 @@ spec — investigate before touching the test.
 
 ## How the schemas stay honest
 
-[`tests/schemas/`](../tests/schemas) is a vendored copy of the spec
+[`tests/schemas/`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/tests/schemas) is a vendored copy of the spec
 repo's JSON schemas, pinned to a specific spec commit by the
-[`SPEC_VERSION`](../tests/schemas/SPEC_VERSION) file. A CI job
-(`spec-schemas` in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml))
-re-runs [`scripts/sync-schemas.sh`](../scripts/sync-schemas.sh)
+[`SPEC_VERSION`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/tests/schemas/SPEC_VERSION) file. A CI job
+(`spec-schemas` in [`.github/workflows/ci.yml`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/.github/workflows/ci.yml))
+re-runs [`scripts/sync-schemas.sh`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/scripts/sync-schemas.sh)
 against the pinned commit and fails if the vendored copies have
 drifted. Per-crate `tests/schema.rs` files validate fully-populated
 wire types against those schemas. Together the firewall catches
@@ -272,10 +272,10 @@ When the spec moves, the workflow is:
 
 ## Conformance
 
-[`aitp-conformance`](../crates/aitp-conformance) defines the runner and the
+[`aitp-conformance`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-conformance) defines the runner and the
 `Adapter` trait. Two adapters ship: `SubprocessAdapter` (speaks NDJSON over
 stdin/stdout to any binary that implements the protocol — the
-[`aitp-rs-adapter`](../crates/aitp-rs-adapter) is the Rust one) and
+[`aitp-rs-adapter`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-rs-adapter) is the Rust one) and
 `InProcessRustAdapter` (calls the crates directly, for fast local dev). The
 op vocabulary spans four tiers — verification, issuance, stateful flows,
 and test-only.
@@ -283,12 +283,12 @@ and test-only.
 A cross-language adapter need only implement that NDJSON protocol; the
 runner, fixtures, and assertion machinery are shared. The full wire
 protocol, the per-tier op table, and the live v0.2 fixture matrix all live in
-[`conformance.md`](conformance).
+[`conformance.md`](/implementation/conformance).
 
 ## Language bindings
 
-[`bindings/aitp-py`](../bindings/aitp-py) (PyO3) and
-[`bindings/aitp-node`](../bindings/aitp-node) (NAPI-rs) are thin SDKs
+[`bindings/aitp-py`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py) (PyO3) and
+[`bindings/aitp-node`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-node) (NAPI-rs) are thin SDKs
 over the protocol crates — an `AitpAgent` plus initiator/responder
 session types whose methods take and return JSON strings (the HTTP
 request/response bodies), so agent code never handles a Rust type.
@@ -299,28 +299,28 @@ envelopes without an HTTP stack.
 The bindings are **excluded from the Cargo workspace** — they are
 `cdylib`s built by maturin / napi-cli against an external toolchain.
 Each SDK has its own in-process handshake tests
-([`aitp-py/tests`](../bindings/aitp-py/tests),
-[`aitp-node/tests`](../bindings/aitp-node/tests)).
-[`bindings/interop`](../bindings/interop) goes further: it runs a real
+([`aitp-py/tests`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/tests),
+[`aitp-node/tests`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-node/tests)).
+[`bindings/interop`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/interop) goes further: it runs a real
 four-message handshake *between* the two SDKs, in both directions, to
 prove they emit wire-compatible envelopes. `make interop` builds both
 bindings and runs that suite.
 
 ## Where to read further
 
-- [`jcs.md`](jcs) — JSON canonicalization strategy, test vectors, the
+- [`jcs.md`](/implementation/jcs) — JSON canonicalization strategy, test vectors, the
   surrogate-pair history
-- [`conformance.md`](conformance) — the full NDJSON adapter protocol
+- [`conformance.md`](/implementation/conformance) — the full NDJSON adapter protocol
   and the per-fixture matrix
-- [`handshake-transcripts.md`](handshake-transcripts) — the four-message
+- [`handshake-transcripts.md`](/implementation/handshake-transcripts) — the four-message
   exchange, byte by byte
-- [`session-bundle.md`](session-bundle),
-  [`multihop-delegation.md`](multihop-delegation),
-  [`tct-renewal.md`](tct-renewal) — the draft, opt-in extensions
-- [`sdk-python.md`](sdk-python) / [`sdk-node.md`](sdk-node) and
-  [`transport-hardening.md`](transport-hardening) — SDK guides and the
+- [`session-bundle.md`](/implementation/session-bundle),
+  [`multihop-delegation.md`](/implementation/multihop-delegation),
+  [`tct-renewal.md`](/implementation/tct-renewal) — the draft, opt-in extensions
+- [`sdk-python.md`](/sdks/python) / [`sdk-node.md`](/sdks/node) and
+  [`transport-hardening.md`](/implementation/transport-hardening) — SDK guides and the
   HTTP-transport hardening register
-- [`../CHANGELOG.md`](../CHANGELOG) — release history and current direction
+- [`../CHANGELOG.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/CHANGELOG.md) — release history and current direction
 - The [AITP RFCs](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/rfcs)
   themselves — the protocol is normatively defined there; this
   implementation tracks them
@@ -328,13 +328,13 @@ bindings and runs that suite.
 ## Where to start reading the code
 
 - New to AITP and want to understand what a handshake produces?
-  Read [`crates/aitp-handshake/src/state_machine.rs`](../crates/aitp-handshake/src/state_machine.rs)
+  Read [`crates/aitp-handshake/src/state_machine.rs`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-handshake/src/state_machine.rs)
 - Want to see end-to-end usage in ~250 lines?
-  Read [`examples/two-agents/`](../examples/two-agents) or run
+  Read [`examples/two-agents/`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/examples/two-agents) or run
   `make demo`
 - Writing an adapter in another language? Read
-  [`conformance.md`](conformance) and look at
-  [`crates/aitp-rs-adapter/src/main.rs`](../crates/aitp-rs-adapter/src/main.rs)
+  [`conformance.md`](/implementation/conformance) and look at
+  [`crates/aitp-rs-adapter/src/main.rs`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-rs-adapter/src/main.rs)
   for a working reference
 - Curious about a specific signed wire type? Each
   `crates/aitp-<type>/src/types.rs` has rustdoc plus

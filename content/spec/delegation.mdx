@@ -8,13 +8,13 @@ description: "RFC-AITP-0006"
 **Document:** RFC-AITP-0006
 **Version:** 0.2.0-draft
 **Status:** Community Standards Track (v0.2 Draft)
-**Depends on:** [RFC-AITP-0001 Core](core), [RFC-AITP-0005 TCT](tct)
+**Depends on:** [RFC-AITP-0001 Core](/spec/core), [RFC-AITP-0005 TCT](/spec/tct)
 
 ---
 
 ## Abstract
 
-Delegation lets an agent (B) that holds a TCT from an issuing peer (A) grant a subset of its capabilities to a third agent (C). This RFC supports **single-hop delegation only**. Multi-hop chains are reserved for [RFC-AITP-0011](multihop-delegation).
+Delegation lets an agent (B) that holds a TCT from an issuing peer (A) grant a subset of its capabilities to a third agent (C). This RFC supports **single-hop delegation only**. Multi-hop chains are reserved for [RFC-AITP-0011](/spec/multihop-delegation).
 
 In `aitp/0.2` the delegation token is a **compact JWS** (RFC-AITP-0001 §5.4.5) signed by the delegating agent, which embeds — verbatim, as an opaque string — the **grant voucher** the issuing peer minted alongside B's TCT (RFC-AITP-0005 §8). No step of issuance or verification reconstructs any byte sequence: every signature is checked over the exact transmitted bytes.
 
@@ -78,7 +78,7 @@ and decoded claims:
 | `voucher` | string | REQUIRED | The grant voucher compact JWS (RFC-AITP-0005 §8), embedded **verbatim**. B MUST NOT decode-and-re-encode it. |
 | `ext` | object | OPTIONAL | Extensions slot (RFC-AITP-0012); unknown claims outside `ext` MUST be rejected. |
 
-The v0.1 `delegator` and `audience` fields (which v0.1 required to be equal) are collapsed into the single `aud` claim. The v0.1 `grant_proof` object is replaced by the `voucher` string. The canonical schema for the decoded claims is [`schemas/json/aitp-delegation.schema.json`](../schemas/json/aitp-delegation.schema.json).
+The v0.1 `delegator` and `audience` fields (which v0.1 required to be equal) are collapsed into the single `aud` claim. The v0.1 `grant_proof` object is replaced by the `voucher` string. The canonical schema for the decoded claims is [`schemas/json/aitp-delegation.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-delegation.schema.json).
 
 ---
 
@@ -114,7 +114,7 @@ When C presents a delegation token to A, A MUST verify all of the following, in 
    ⇒ else `DELEGATION_SCOPE_EXCEEDED`.
 7. **Source TCT revocation.** Look up `voucher.src_jti` in A's own deny list. If the source TCT has been revoked, the delegation token MUST be rejected ⇒ `DELEGATION_SOURCE_TCT_REVOKED`. This is the only stateful check; it runs only after every signature check has passed (RFC-AITP-0008 §3.3).
 8. **No self-delegation.** The outer `iss` MUST NOT equal `sub` ⇒ else `DELEGATION_INVALID_SIGNATURE`.
-9. **Proof of possession.** Verify that the presenting agent holds the private key matching `cnf` by running the downstream PoP exchange of [RFC-AITP-0005 §6.1](tct#61-downstream-pop-exchange) against C, with the bound key taken from the delegation's `sub` AID and checked against `cnf.jkt` (RFC-AITP-0005 §6.2). The verifier MUST issue a fresh `pop_challenge` with a per-verification 128-bit nonce. PoP failure ⇒ `DELEGATION_POP_FAILED`. Implementations MAY skip the exchange only when an equivalent channel binding to C's key is already in place (e.g. mTLS with a client certificate matching `cnf`); they MUST document that posture.
+9. **Proof of possession.** Verify that the presenting agent holds the private key matching `cnf` by running the downstream PoP exchange of [RFC-AITP-0005 §6.1](/spec/tct#61-downstream-pop-exchange) against C, with the bound key taken from the delegation's `sub` AID and checked against `cnf.jkt` (RFC-AITP-0005 §6.2). The verifier MUST issue a fresh `pop_challenge` with a per-verification 128-bit nonce. PoP failure ⇒ `DELEGATION_POP_FAILED`. Implementations MAY skip the exchange only when an equivalent channel binding to C's key is already in place (e.g. mTLS with a client certificate matching `cnf`); they MUST document that posture.
 
 **Multi-hop guard.** Until an implementation explicitly opts into RFC-AITP-0011, it MUST reject any delegation token carrying a `chain` claim (RFC-AITP-0011's opt-in marker) with `DELEGATION_MULTIHOP_NOT_SUPPORTED` — a structural rejection before any per-hop processing.
 
@@ -155,7 +155,7 @@ signature     = base64url(sign(B_private_key, signing_input))
 
 There is no canonicalization step, for the outer token or the embedded voucher. The voucher string inside the claims object is covered verbatim by B's signature, so it cannot be swapped without invalidating the outer JWS.
 
-Pinned (fixed seed → exact compact JWS) vectors for a single-hop delegation live under [`schemas/conformance/known-answer/signed-examples/delegation/`](../schemas/conformance/known-answer/signed-examples/delegation/); implementations MUST reproduce them byte-for-byte.
+Pinned (fixed seed → exact compact JWS) vectors for a single-hop delegation live under [`schemas/conformance/known-answer/signed-examples/delegation/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance/known-answer/signed-examples/delegation); implementations MUST reproduce them byte-for-byte.
 
 ---
 
@@ -197,7 +197,7 @@ Defined error codes (see [`registries/error-codes.md`](/registry/error-codes)):
 
 ## 9. Multi-hop (Future)
 
-Multi-hop delegation (A → B → C → D) is specified in [RFC-AITP-0011](multihop-delegation) (Draft; opt-in). RFC-AITP-0011 covers:
+Multi-hop delegation (A → B → C → D) is specified in [RFC-AITP-0011](/spec/multihop-delegation) (Draft; opt-in). RFC-AITP-0011 covers:
 
 - the `chain` claim — an array of delegation compact JWS strings, one per hop, carried verbatim;
 - per-hop verification — standard JWS verification plus scope-subsetting, expiry monotonicity, and revocation at every hop;
@@ -210,10 +210,10 @@ Multi-hop delegation (A → B → C → D) is specified in [RFC-AITP-0011](multi
 
 ## 10. References
 
-- [RFC-AITP-0001 Core](core)
-- [RFC-AITP-0005 TCT](tct)
-- [RFC-AITP-0008 Revocation](revocation)
-- [RFC-AITP-0009 Security](security)
-- [RFC-AITP-0011 Multi-hop Delegation](multihop-delegation) *(Draft, opt-in)*
+- [RFC-AITP-0001 Core](/spec/core)
+- [RFC-AITP-0005 TCT](/spec/tct)
+- [RFC-AITP-0008 Revocation](/spec/revocation)
+- [RFC-AITP-0009 Security](/spec/security)
+- [RFC-AITP-0011 Multi-hop Delegation](/spec/multihop-delegation) *(Draft, opt-in)*
 - [RFC 7515 — JSON Web Signature](https://datatracker.ietf.org/doc/html/rfc7515)
 - [RFC 7800 — Proof-of-Possession Key Semantics for JWTs](https://datatracker.ietf.org/doc/html/rfc7800)

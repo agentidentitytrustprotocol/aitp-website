@@ -50,7 +50,7 @@ signing key, not a config toggle.
   runtime by the proxy, so it can be changed via the deploy environment
   without rebuilding the image. Defaults to `http://localhost:3000` if unset.
 
-See [`api.md`](api#authentication) for the full auth matrix.
+See [`api.md`](/control-plane/api#authentication) for the full auth matrix.
 
 ### Verifying the request gate
 
@@ -149,7 +149,7 @@ retries:
   open before a half-open probe is allowed.
 
 Inspect or reset a breaker via `GET /api/webhooks/:id/circuit-breaker` and
-`POST /api/webhooks/:id/circuit-breaker/reset` (see [`api.md`](api#webhooks)).
+`POST /api/webhooks/:id/circuit-breaker/reset` (see [`api.md`](/control-plane/api#webhooks)).
 
 ## Data retention
 

@@ -8,7 +8,7 @@ description: "RFC-AITP-0005"
 **Document:** RFC-AITP-0005
 **Version:** 0.2.1-draft
 **Status:** Community Standards Track (v0.2 Draft)
-**Depends on:** [RFC-AITP-0001 Core](core), [RFC-AITP-0004 Mutual Handshake](mutual-handshake)
+**Depends on:** [RFC-AITP-0001 Core](/spec/core), [RFC-AITP-0004 Mutual Handshake](/spec/mutual-handshake)
 
 ---
 
@@ -18,7 +18,7 @@ The Trust Context Token (TCT) is the canonical output of AITP. It is a signed, p
 
 A TCT answers exactly one question: *what is this peer allowed to do here?*
 
-In `aitp/0.2` the TCT is a **compact JWS** ([RFC 7515](https://datatracker.ietf.org/doc/html/rfc7515)) under the Compact JWS profile of [RFC-AITP-0001 §5.4.5](core#545-compact-jws-profile-portable-trust-artifacts). Its claims map onto registered JWT claims, so any mature JOSE library can verify a TCT given only the issuer's public key — no AITP stack, no canonicalization, no byte reconstruction. This RFC also defines the **grant voucher** (§8), a companion JWS minted alongside the TCT that makes delegation (RFC-AITP-0006) verifiable without reconstructing TCT bytes.
+In `aitp/0.2` the TCT is a **compact JWS** ([RFC 7515](https://datatracker.ietf.org/doc/html/rfc7515)) under the Compact JWS profile of [RFC-AITP-0001 §5.4.5](/spec/core#545-compact-jws-profile-portable-trust-artifacts). Its claims map onto registered JWT claims, so any mature JOSE library can verify a TCT given only the issuer's public key — no AITP stack, no canonicalization, no byte reconstruction. This RFC also defines the **grant voucher** (§8), a companion JWS minted alongside the TCT that makes delegation (RFC-AITP-0006) verifiable without reconstructing TCT bytes.
 
 ---
 
@@ -57,7 +57,7 @@ with protected header (exactly these two parameters — RFC-AITP-0001 §5.4.5):
 
 The signature covers the exact transmitted bytes. Verifiers MUST NOT re-serialize or canonicalize any part of the token.
 
-The canonical schema for the decoded claims object is [`schemas/json/aitp-tct.schema.json`](../schemas/json/aitp-tct.schema.json). On the wire — in handshake payloads, session bundles, HTTP headers — the TCT is always the opaque compact string.
+The canonical schema for the decoded claims object is [`schemas/json/aitp-tct.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-tct.schema.json). On the wire — in handshake payloads, session bundles, HTTP headers — the TCT is always the opaque compact string.
 
 ---
 
@@ -249,7 +249,7 @@ A failure at any step MUST return `POP_RESPONSE_INVALID`. A malformed or stale c
 >
 > Implementations MUST also document their default PoP enforcement posture (enforce-for-marked-only, enforce-for-all, mTLS-equivalent-channel-binding, etc.) so operators can audit the configuration against their threat model.
 >
-> The conformance fixture [`tct-006-pop-challenge-response.json`](../schemas/conformance/tct-006-pop-challenge-response.json) verifies the implementation can produce and verify a PoP exchange end-to-end. The fixture [`tct-007-pop-enforcement-required.json`](../schemas/conformance/tct-007-pop-enforcement-required.json) verifies that a grant marked as requiring PoP cannot be consumed without a valid `pop_response` — implementations that allow capability invocation against a PoP-required grant in the absence of a valid response MUST fail this fixture.
+> The conformance fixture [`tct-006-pop-challenge-response.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/tct-006-pop-challenge-response.json) verifies the implementation can produce and verify a PoP exchange end-to-end. The fixture [`tct-007-pop-enforcement-required.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/tct-007-pop-enforcement-required.json) verifies that a grant marked as requiring PoP cannot be consumed without a valid `pop_response` — implementations that allow capability invocation against a PoP-required grant in the absence of a valid response MUST fail this fixture.
 
 ### 6.3 Where this exchange happens
 
@@ -276,7 +276,7 @@ signature     = base64url(sign(issuer_private_key, signing_input))
 
 (For `EdDSA` the signature is Ed25519 over the signing input; for `ES256` it is ECDSA P-256/SHA-256 with the JOSE raw `R || S` encoding — RFC-AITP-0001 §5.4.5.)
 
-There is no canonicalization step. The bytes the issuer transmitted are the bytes the verifier checks. Pinned (fixed seed → exact compact JWS string) vectors live under [`schemas/conformance/known-answer/signed-examples/`](../schemas/conformance/known-answer/signed-examples/); implementations MUST reproduce them byte-for-byte, and any off-the-shelf JOSE tool given the issuer public key MUST verify them.
+There is no canonicalization step. The bytes the issuer transmitted are the bytes the verifier checks. Pinned (fixed seed → exact compact JWS string) vectors live under [`schemas/conformance/known-answer/signed-examples/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance/known-answer/signed-examples); implementations MUST reproduce them byte-for-byte, and any off-the-shelf JOSE tool given the issuer public key MUST verify them.
 
 ### 7.2 Verification order
 
@@ -357,7 +357,7 @@ Decoded claims:
 
 The voucher has no `jti` and no independent revocation handle — its lifecycle is strictly derived from the companion TCT via `src_jti`. It has no `cnf`: it is not presented under PoP by itself, but embedded verbatim inside a delegation token whose outer signature binds it (RFC-AITP-0006).
 
-The canonical schema for the decoded claims is [`schemas/json/aitp-grant-voucher.schema.json`](../schemas/json/aitp-grant-voucher.schema.json).
+The canonical schema for the decoded claims is [`schemas/json/aitp-grant-voucher.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-grant-voucher.schema.json).
 
 ### 8.2 Issuance rules
 
@@ -380,7 +380,7 @@ Issued → Active → Expired
 ```
 
 - TCTs MUST NOT be used after `exp`.
-- TCTs MAY be revoked before `exp` via the issuing peer's JTI deny list (see [RFC-AITP-0008](revocation)). Revoking a TCT also invalidates its companion voucher and every delegation derived from it (`src_jti` linkage, §8.1).
+- TCTs MAY be revoked before `exp` via the issuing peer's JTI deny list (see [RFC-AITP-0008](/spec/revocation)). Revoking a TCT also invalidates its companion voucher and every delegation derived from it (`src_jti` linkage, §8.1).
 
 ### 9.1 Recommended TTLs
 
@@ -467,19 +467,19 @@ Alternatives rejected:
 - Consuming peers MUST treat the TCT signature as the sole authority. The TCT is self-contained; there is no out-of-band lookup that "augments" trust.
 - The `alg` header is attacker-controlled input until pinned: deriving the sole acceptable algorithm from the AID **before** verification (§7.2 step 3) is what forecloses `none` and cross-algorithm confusion. See RFC-AITP-0009 §1.
 - `typ` enforcement (§7.2 step 2) prevents a grant voucher or delegation token — signed by the same keys — from being replayed as a TCT. See RFC-AITP-0009 §1.
-- Recommended TTLs balance availability against compromise blast radius. See [RFC-AITP-0009](security).
+- Recommended TTLs balance availability against compromise blast radius. See [RFC-AITP-0009](/spec/security).
 - Wildcard audiences are forbidden to prevent cross-peer confusion attacks.
 
 ---
 
 ## 14. References
 
-- [RFC-AITP-0001 Core](core)
-- [RFC-AITP-0003 Agent Manifest](manifest)
-- [RFC-AITP-0004 Mutual Handshake](mutual-handshake)
-- [RFC-AITP-0006 Single-Hop Delegation](delegation)
-- [RFC-AITP-0008 Revocation](revocation)
-- [RFC-AITP-0009 Security](security)
+- [RFC-AITP-0001 Core](/spec/core)
+- [RFC-AITP-0003 Agent Manifest](/spec/manifest)
+- [RFC-AITP-0004 Mutual Handshake](/spec/mutual-handshake)
+- [RFC-AITP-0006 Single-Hop Delegation](/spec/delegation)
+- [RFC-AITP-0008 Revocation](/spec/revocation)
+- [RFC-AITP-0009 Security](/spec/security)
 - [RFC 7515 — JSON Web Signature](https://datatracker.ietf.org/doc/html/rfc7515)
 - [RFC 7519 — JSON Web Token](https://datatracker.ietf.org/doc/html/rfc7519)
 - [RFC 7638 — JWK Thumbprint](https://datatracker.ietf.org/doc/html/rfc7638)

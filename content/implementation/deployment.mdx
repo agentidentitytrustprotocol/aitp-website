@@ -24,7 +24,7 @@ Everything below is a consequence of that rule.
 | Layer / state | Stateful? | Multi-node story |
 |---|---|---|
 | `aitp-core`, `aitp-crypto`, `aitp-tct`, `aitp-delegation`, `aitp-handshake`, `aitp-manifest`, `aitp-envelope` | **No** | Pure functions. Verify/sign take inputs and return outputs; revocation is a caller-supplied callback. Run as many instances as you like — nothing to share. |
-| **Replay deny-list** (envelope `message_id`, DPoP `jti`) | Yes | **Supply a shared [`ReplayGuard`](../crates/aitp-transport-http/src/replay_store.rs) or use sticky routing.** This is the one place per-node in-memory state silently weakens a guarantee at scale — see below. |
+| **Replay deny-list** (envelope `message_id`, DPoP `jti`) | Yes | **Supply a shared [`ReplayGuard`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-transport-http/src/replay_store.rs) or use sticky routing.** This is the one place per-node in-memory state silently weakens a guarantee at scale — see below. |
 | **In-flight handshake sessions** | Yes | **Use sticky routing.** A handshake is a ~tens-of-ms, 4-message conversation holding live state; it is not a shared-store problem. The built-in `max_sessions` + TTL + sweeper bound per-node memory. See below. |
 | Manifest cache, OIDC discovery cache, JWKS (positive + negative) cache, revocation-snapshot cache | Yes (caches) | **Nothing to do.** All are re-fetchable and TTL-bounded. A cache miss just re-fetches; there is no correctness impact from not sharing them, so they are deliberately in-memory and not pluggable. |
 | Facade `TctStore` (held TCTs) | Yes | Client-side convenience your code already owns — hold/replace it as you see fit. |
@@ -103,7 +103,7 @@ Independent of clustering, production servers/clients should set:
   `.with_host_guard(HostGuard::strict())` on internet-facing deployments
   where no legitimate peer/IdP host is on a private network, and
   `.with_insecure_localhost(false)` to drop the dev exception. (See
-  [`transport-hardening.md`](transport-hardening).)
+  [`transport-hardening.md`](/implementation/transport-hardening).)
 - **Strict TCT verification** — build `TctVerifyContext` via
   `::builder(...)` and supply a revocation source and the issuer-Manifest
   expiry cap, rather than the permissive `::now()` / `::permissive_at()`
@@ -119,9 +119,9 @@ Independent of clustering, production servers/clients should set:
   [`metrics`](https://docs.rs/metrics) facade (`aitp_handshake_total`,
   `aitp_replay_rejected_total`, `aitp_sessions_evicted_total`,
   `aitp_revocation_cache_total`, `aitp_jwks_cache_total`); see
-  [`examples/observability/`](../examples/observability/README) for
+  [`examples/observability/`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/examples/observability/README.md) for
   tracing/dashboard wiring.
-- **Key handling** — see [`key-management.md`](key-management) for seed
+- **Key handling** — see [`key-management.md`](/implementation/key-management) for seed
   storage, in-memory hygiene, KMS/HSM reality, and the rotation runbook.
 
 ## Summary

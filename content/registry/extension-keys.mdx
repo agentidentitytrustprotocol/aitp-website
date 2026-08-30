@@ -26,7 +26,7 @@ discover each other's optional features without ad-hoc string matching.
 - Extension keys MUST follow the `rfc-aitp-NNNN.<short_name>` form when
   they are introduced by an AITP RFC. Keys outside that namespace SHOULD
   use vendor-prefixed reverse-domain names (e.g. `com.example.feature`,
-  per [README.md naming conventions](README#naming-conventions)).
+  per [README.md naming conventions](/registry#naming-conventions)).
 - Unknown extension keys MUST be ignored by consumers
   ([RFC-AITP-0001 §7](/spec/core#7-compatibility-model)).
   Treating an unknown key as a hard failure is non-conformant.
@@ -42,5 +42,5 @@ Open a PR adding a row above. Include:
 - which wire object hosts it,
 - the value type (URL, integer, JSON object, etc.),
 - the RFC or document that defines its semantics,
-- the [status](README#status-values) (`Proposed`, `Provisional`,
+- the [status](/registry#status-values) (`Proposed`, `Provisional`,
   `Stable`, or `Deprecated`).

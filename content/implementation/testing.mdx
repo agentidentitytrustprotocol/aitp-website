@@ -69,7 +69,7 @@ harness's own key** before handing them to the adapter. So `aitp-rs` and
 `aitp-verifier-py` each minted under their own convention, verified their
 own output, and both reported 51/51 — while a revocation snapshot minted
 by one could never verify against the other. See
-[conformance.md](conformance#what-the-fixture-corpus-cannot-detect).
+[conformance.md](/implementation/conformance#what-the-fixture-corpus-cannot-detect).
 
 The rule now: **verify committed bytes as committed.** The spec's
 `signed-examples/` exist for exactly this, and its README says so — those
@@ -160,9 +160,9 @@ see `../plans/defered/deferred.md`.)
 
 The v0.2 conformance corpus lives in the **spec repo**
 (`agentidentitytrustprotocol/schemas/conformance/`), pinned to the
-commit in [`../tests/schemas/SPEC_VERSION`](../tests/schemas/SPEC_VERSION).
+commit in [`../tests/schemas/SPEC_VERSION`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/tests/schemas/SPEC_VERSION).
 The `aitp-conformance` runner drives fixtures through an adapter that
-speaks the NDJSON protocol described in [`conformance.md`](conformance);
+speaks the NDJSON protocol described in [`conformance.md`](/implementation/conformance);
 `aitp-rs-adapter` is the canonical Rust adapter.
 
 ```bash
@@ -177,7 +177,7 @@ cargo build -p aitp-rs-adapter -p aitp-conformance
 Expected: **51 pass / 0 fail / 2 skip** with the draft features enabled
 (`del-004` is a frozen v0.1 shape). The `conformance` job in `ci.yml`
 runs exactly this against the pinned spec commit. See
-[`conformance.md`](conformance) for the per-fixture matrix.
+[`conformance.md`](/implementation/conformance) for the per-fixture matrix.
 
 ## Language bindings
 

@@ -3,14 +3,14 @@ title: "Data model"
 ---
 
 
-Postgres schema, defined in [`src/lib/db/schema.ts`](../src/lib/db/schema.ts)
-with Drizzle and migrated by the SQL files in [`drizzle/`](../drizzle). All
+Postgres schema, defined in [`src/lib/db/schema.ts`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/src/lib/db/schema.ts)
+with Drizzle and migrated by the SQL files in [`drizzle/`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/drizzle). All
 timestamps are `timestamptz` stored as ISO-8601 strings. JSON columns are
 `jsonb`.
 
 This is a reference for operators querying the database directly and for anyone
 extending the schema. For the events that populate the derived tables, see
-[`events.md`](events).
+[`events.md`](/control-plane/events).
 
 ## Tables
 
@@ -211,4 +211,4 @@ database from a checkout (the runtime image does not bundle `drizzle-kit`).
 > `trust_anchors`, and `pinned_keys` are **not** swept — they're authoritative
 > records, not telemetry. Only `audit_events`, `webhook_deliveries`,
 > `admin_audit_log`, `idempotency_keys`, `enrollment_jtis`, and long-deregistered
-> `agents` are aged out. See [`operations.md`](operations#data-retention).
+> `agents` are aged out. See [`operations.md`](/control-plane/operations#data-retention).

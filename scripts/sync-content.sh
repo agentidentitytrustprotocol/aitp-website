@@ -14,13 +14,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SIBLINGS="$(cd "$REPO_ROOT/.." && pwd)"
 CONTENT_DIR="$REPO_ROOT/content"
 ESCAPER="$SCRIPT_DIR/escape-mdx.py"
-
-# Portable sed in-place: macOS uses -i '', Linux uses -i
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sedi() { sed -i '' "$@"; }
-else
-  sedi() { sed -i "$@"; }
-fi
+LINKER="$SCRIPT_DIR/rewrite-links.py"
+# Records "<target mdx>\t<source repo>\t<path within that repo>" for every
+# generated page, so the link pass can resolve relative links from the origin.
+MANIFEST="$(mktemp)"
+trap 'rm -f "$MANIFEST"' EXIT
 
 # Resolve a source repo: CI checkout (<name>-repo) first, then sibling (../<name>).
 resolve_repo() {
@@ -62,6 +60,9 @@ titlecase() {
 gen_mdx() {
   local src="$1" target="$2" desc="${3:-}" title="${4:-}"
   mkdir -p "$(dirname "$target")"
+  if [ -n "${SRC_REPO:-}" ]; then
+    printf '%s\t%s\t%s\n' "$target" "$SRC_REPO" "${src#"$SRC_ROOT"/}" >> "$MANIFEST"
+  fi
   if head -1 "$src" | grep -q '^---'; then
     cp "$src" "$target"
     return
@@ -84,6 +85,7 @@ lc() { echo "$1" | tr '[:upper:]' '[:lower:]'; }
 
 # ─── docs/ → content/docs/ ───────────────────────────────────────────────
 echo ""; echo "Syncing docs..."
+SRC_REPO="agentidentitytrustprotocol"; SRC_ROOT="$SPEC_DIR"
 for file in "$SPEC_DIR"/docs/*.md; do
   [ -f "$file" ] || continue
   base=$(lc "$(basename "$file" .md)")
@@ -92,6 +94,7 @@ done
 
 # ─── rfcs/ → content/spec/ ───────────────────────────────────────────────
 echo "Syncing RFCs..."
+SRC_REPO="agentidentitytrustprotocol"; SRC_ROOT="$SPEC_DIR"
 for file in "$SPEC_DIR"/rfcs/RFC-AITP-*.md; do
   [ -f "$file" ] || continue
   base=$(basename "$file" .md)                        # RFC-AITP-0005-tct
@@ -106,6 +109,7 @@ done
 
 # ─── registries/ → content/registry/ ─────────────────────────────────────
 echo "Syncing registries..."
+SRC_REPO="agentidentitytrustprotocol"; SRC_ROOT="$SPEC_DIR"
 for file in "$SPEC_DIR"/registries/*.md; do
   [ -f "$file" ] || continue
   base=$(lc "$(basename "$file" .md)")
@@ -116,6 +120,7 @@ done
 # ─── aitp-rs → content/implementation/ ───────────────────────────────────
 if [ -d "$RS_DIR" ]; then
   echo "Syncing implementation (aitp-rs)..."
+  SRC_REPO="aitp-rs"; SRC_ROOT="$RS_DIR"
   [ -f "$RS_DIR/README.md" ] && \
     gen_mdx "$RS_DIR/README.md" "$CONTENT_DIR/implementation/index.mdx" \
       "Rust reference implementation of the Agent Identity & Trust Protocol"
@@ -141,6 +146,7 @@ fi
 
 # ─── SDK docs (from aitp-rs) → content/sdks/<lang>/ ──────────────────────
 echo "Syncing SDK docs..."
+SRC_REPO="aitp-rs"; SRC_ROOT="$RS_DIR"
 mkdir -p "$CONTENT_DIR/sdks"
 cat > "$CONTENT_DIR/sdks/index.mdx" <<'EOF'
 ---
@@ -167,6 +173,7 @@ fi
 # ─── aitp-control-plane → content/control-plane/ ─────────────────────────
 if [ -d "$CP_DIR" ]; then
   echo "Syncing control plane..."
+  SRC_REPO="aitp-control-plane"; SRC_ROOT="$CP_DIR"
   [ -f "$CP_DIR/README.md" ] && \
     gen_mdx "$CP_DIR/README.md" "$CONTENT_DIR/control-plane/index.mdx" \
       "Registry, audit log, revocation, and webhook fan-out service for AITP"
@@ -183,6 +190,7 @@ fi
 # ─── aitp-playground → content/playground/ ───────────────────────────────
 if [ -d "$PG_DIR" ]; then
   echo "Syncing playground..."
+  SRC_REPO="aitp-playground"; SRC_ROOT="$PG_DIR"
   [ -f "$PG_DIR/README.md" ] && \
     gen_mdx "$PG_DIR/README.md" "$CONTENT_DIR/playground/index.mdx" \
       "Run AITP scenario demonstrations end-to-end with real LLM-powered agents"
@@ -199,6 +207,7 @@ fi
 # ─── aitp-ui-console → content/console/ (noindex) ────────────────────────
 if [ -d "$UI_DIR" ]; then
   echo "Syncing console..."
+  SRC_REPO="aitp-ui-console"; SRC_ROOT="$UI_DIR"
   [ -f "$UI_DIR/README.md" ] && \
     gen_mdx "$UI_DIR/README.md" "$CONTENT_DIR/console/index.mdx" \
       "Monitoring and control console for the AITP ecosystem"
@@ -218,36 +227,11 @@ while IFS= read -r -d '' file; do
   python3 "$ESCAPER" < "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 done < <(find "$CONTENT_DIR" -name '*.mdx' -type f -print0)
 
-# ─── Rewrite internal .md links to route paths ───────────────────────────
-echo "Rewriting internal links..."
-while IFS= read -r -d '' file; do
-  # Each rule preserves an optional #anchor. Cross-section links resolve to
-  # absolute route paths; same-section links to clean relative slugs.
-  # Cross-section: ../rfcs/RFC-AITP-NNNN-*.md(#anchor) → /spec/*(#anchor)
-  sedi -E 's|\]\(\.\./rfcs/RFC-AITP-[0-9]+-([^.)#]*)\.md(#[^)]*)?\)|](/spec/\1\2)|g' "$file"
-  # Cross-section: ../registries/foo.md(#anchor) → /registry/foo(#anchor)
-  sedi -E 's|\]\(\.\./registries/([^.)#]*)\.md(#[^)]*)?\)|](/registry/\1\2)|g' "$file"
-  # Cross-section: ../docs/foo.md(#anchor) → /docs/foo(#anchor)
-  sedi -E 's|\]\(\.\./docs/([^.)#]*)\.md(#[^)]*)?\)|](/docs/\1\2)|g' "$file"
-  # Same-dir RFC links: RFC-AITP-NNNN-name.md(#anchor) → name(#anchor)
-  sedi -E 's|\]\(RFC-AITP-[0-9]+-([^.)#]*)\.md(#[^)]*)?\)|](\1\2)|g' "$file"
-  # Same-dir docs/foo.md(#anchor) → foo(#anchor)
-  sedi -E 's|\]\(docs/([^.)#]*)\.md(#[^)]*)?\)|](\1\2)|g' "$file"
-  # Bare directory links: ](../rfcs/) → /spec, ](../registries/) → /registry, ](../docs/) → /docs
-  sedi -E 's|\]\(\.\./rfcs/?\)|](/spec)|g; s|\]\(\.\./registries/?\)|](/registry)|g; s|\]\(\.\./docs/?\)|](/docs)|g' "$file"
-  # Catch-all: drop remaining .md extensions in links
-  sedi -e 's|\.md)|)|g' -e 's|\.md#|#|g' "$file"
-done < <(find "$CONTENT_DIR" -name '*.mdx' -type f -print0)
-
-# ─── Fix relative links in index pages ───────────────────────────────────
-# Index pages resolve relative links from the site root, not the section, so
-# rewrite bare ](slug) links to absolute ](/section/slug).
-echo "Fixing relative links in index pages..."
-for index_file in "$CONTENT_DIR"/*/index.mdx; do
-  [ -f "$index_file" ] || continue
-  section=$(basename "$(dirname "$index_file")")
-  sedi -E "s|\]\(([a-zA-Z][a-zA-Z0-9_-]*)\)|](/${section}/\1)|g" "$index_file"
-done
+# ─── Rewrite links to route paths / canonical GitHub URLs ────────────────
+# Runs after every page exists, so the pass can tell a link to another synced
+# page from a link to a file that only lives in the source repo.
+echo "Rewriting links..."
+python3 "$LINKER" "$CONTENT_DIR" "$MANIFEST"
 
 echo ""
 echo "Content sync complete."

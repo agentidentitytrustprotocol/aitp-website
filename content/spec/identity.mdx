@@ -8,13 +8,13 @@ description: "RFC-AITP-0002"
 **Document:** RFC-AITP-0002
 **Version:** 0.2.2-draft
 **Status:** Community Standards Track (v0.2 Draft)
-**Depends on:** [RFC-AITP-0001 Core](core)
+**Depends on:** [RFC-AITP-0001 Core](/spec/core)
 
 ---
 
 ## Abstract
 
-This RFC defines how an agent's AID is bound to a verifiable claim from a trusted issuer. AITP does not define an identity system; this RFC defines how identity is *presented* and *verified* between peers. The verifying party is always another peer agent (not a third-party verifier or service): see [RFC-AITP-0001 §4 Architecture](core#4-architecture).
+This RFC defines how an agent's AID is bound to a verifiable claim from a trusted issuer. AITP does not define an identity system; this RFC defines how identity is *presented* and *verified* between peers. The verifying party is always another peer agent (not a third-party verifier or service): see [RFC-AITP-0001 §4 Architecture](/spec/core#4-architecture).
 
 **Where identity proof appears.** Identity proof — the verifiable JWT (for OIDC) or signature (for pinned_key) — is exchanged inline during the Mutual Handshake (RFC-AITP-0004 §3). The Agent Manifest (RFC-AITP-0003 §3.1) carries only an **identity hint** (`identity_hint`): static `type`/`issuer`/`subject` metadata, with no `proof` field. The hint lets peers discover *which* identity provider an agent uses; the verifiable proof is presented fresh each handshake so it can be bound to a per-handshake nonce and to the verifying peer's AID. The `aud`, `cnf.jkt`, and `nonce` requirements in §2 apply to the handshake-level identity proof only, never to the Manifest hint.
 
@@ -44,7 +44,7 @@ v0.2 supports two identity types: `oidc` and `pinned_key`. Future identity types
 | `proof` | string | REQUIRED | JWT for OIDC; base64url signature for pinned_key. |
 | `public_key` | string | REQUIRED for `pinned_key`; MUST be absent for `oidc` | base64url-encoded public key. For `pinned_key`, this is the key the verifier looks up in its `pinned_keys` configuration (§3.2). For `oidc`, the agent's public key is already encoded in the verifying-peer envelope's `sender.agent_id` (the AID-identifier component) — there is no second copy in the descriptor, and including one would create an ambiguity over which key the JWT's `cnf.jkt` is meant to bind. The identity-descriptor schema (`schemas/json/aitp-identity.schema.json`) enforces this: its `oidc` branch forbids `public_key`, mirroring the `IdentityHint` rule that the Manifest schema applies to `identity_hint`. v0.2 verifiers MUST reject an OIDC `identity` descriptor that carries `public_key`. |
 
-The canonical JSON Schema is [`schemas/json/aitp-identity.schema.json`](../schemas/json/aitp-identity.schema.json).
+The canonical JSON Schema is [`schemas/json/aitp-identity.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-identity.schema.json).
 
 > **Note on `proof` inputs.** The proof input differs by type. For `oidc`, `proof` is a self-contained JWT (§2). For `pinned_key`, `proof` is a signature whose input binds fields drawn from the surrounding handshake envelope (§3.1) — including the `pop_nonce` carried on `MUTUAL_HELLO` / `MUTUAL_HELLO_ACK` (RFC-AITP-0004 §3). The descriptor itself does NOT carry the nonce; verifiers reconstruct the proof input from the envelope plus the descriptor's `subject` and the local `receiver_aid`.
 
@@ -82,15 +82,15 @@ where `<aid-identifier>` is the 43-character AID identifier component from `aid:
 
 The thumbprint is computed per RFC 7638: serialize this exact 3-field JSON object with members in lexicographic order, no whitespace, hash with SHA-256, encode the digest as unpadded base64url. Implementations MUST NOT include any other JWK members (no `kid`, no `alg`, no `use`) when computing the thumbprint — additional members would change the canonical serialization and the resulting hash.
 
-> **Shared convention with the portable trust artifacts.** In `aitp/0.2` this same RFC 7638 `cnf.jkt` convention is also the proof-of-possession key binding on the compact-JWS portable trust artifacts — the TCT and the delegation token ([RFC-AITP-0001 §5.4.4](core#544-jwk-thumbprint-for-cnf), which cites this section). The v0.1 raw-public-key `binding.cnf` form on the TCT no longer exists; identity binding and token binding now use one `cnf.jkt` convention.
+> **Shared convention with the portable trust artifacts.** In `aitp/0.2` this same RFC 7638 `cnf.jkt` convention is also the proof-of-possession key binding on the compact-JWS portable trust artifacts — the TCT and the delegation token ([RFC-AITP-0001 §5.4.4](/spec/core#544-jwk-thumbprint-for-cnf), which cites this section). The v0.1 raw-public-key `binding.cnf` form on the TCT no longer exists; identity binding and token binding now use one `cnf.jkt` convention.
 
-> **Known-answer test.** For the pinned all-zero-seed Ed25519 keypair (`kat-keypair-001` in [`schemas/conformance/known-answer/keypairs.json`](../schemas/conformance/known-answer/keypairs.json)), `aid-identifier = O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik`, the canonical JWK input is `{"crv":"Ed25519","kty":"OKP","x":"O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik"}` (87 bytes), and the resulting `jkt` MUST be `9ZP03Nu8GrXPAUkbKNxHOKBzxPX83SShgFkRNK-f2lw`. Additional vectors live at [`schemas/conformance/known-answer/jwk-thumbprints.json`](../schemas/conformance/known-answer/jwk-thumbprints.json).
+> **Known-answer test.** For the pinned all-zero-seed Ed25519 keypair (`kat-keypair-001` in [`schemas/conformance/known-answer/keypairs.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/keypairs.json)), `aid-identifier = O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik`, the canonical JWK input is `{"crv":"Ed25519","kty":"OKP","x":"O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik"}` (87 bytes), and the resulting `jkt` MUST be `9ZP03Nu8GrXPAUkbKNxHOKBzxPX83SShgFkRNK-f2lw`. Additional vectors live at [`schemas/conformance/known-answer/jwk-thumbprints.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jwk-thumbprints.json).
 
 ### 2.3 Verification steps
 
 A peer verifying an identity binding MUST:
 
-1. Resolve the issuer's public keys (see [RFC-AITP-0007](key-resolution)).
+1. Resolve the issuer's public keys (see [RFC-AITP-0007](/spec/key-resolution)).
 2. Verify the JWT signature against the resolved keys.
 3. Validate that `iss` matches the identity descriptor's `issuer`.
 4. Validate `exp` is in the future.
@@ -104,7 +104,7 @@ Peers MUST NOT accept JWTs from issuers not present in `trust_anchors`. Peers MU
 
 ### 2.4 Example
 
-A decoded JWT payload (claims) for an OIDC identity binding presented by Agent A to Agent B (using the `kat-keypair-002` AID from [`schemas/conformance/known-answer/keypairs.json`](../schemas/conformance/known-answer/keypairs.json) for B):
+A decoded JWT payload (claims) for an OIDC identity binding presented by Agent A to Agent B (using the `kat-keypair-002` AID from [`schemas/conformance/known-answer/keypairs.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/keypairs.json) for B):
 
 ```json
 {
@@ -167,7 +167,7 @@ Where:
 
 > **Replay resistance.** v0.2 pinned-key proofs are bound to the full handshake context — the same five fields v0.1 bound (sender, receiver, message, timestamp, nonce); only `timestamp`'s on-the-wire encoding within the proof input changed, per the erratum above. A signature produced for one (sender, receiver, message, timestamp, nonce) tuple cannot be replayed against a different tuple.
 
-> **Known-answer test.** The `kat-pinned-key-proof-001` vector in [`schemas/conformance/known-answer/jcs-sha256.json`](../schemas/conformance/known-answer/jcs-sha256.json) pins a concrete `(sender, receiver, message_id, timestamp, pop_nonce)` tuple, the resulting `proof_input` bytes, and the Ed25519 signature over `sha256(proof_input)` produced with `kat-keypair-003`. It also pins that the same signature does NOT verify when `timestamp` is instead encoded as an 8-byte big-endian integer, so the ASCII-decimal encoding is machine-checkable rather than a matter of prose interpretation.
+> **Known-answer test.** The `kat-pinned-key-proof-001` vector in [`schemas/conformance/known-answer/jcs-sha256.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jcs-sha256.json) pins a concrete `(sender, receiver, message_id, timestamp, pop_nonce)` tuple, the resulting `proof_input` bytes, and the Ed25519 signature over `sha256(proof_input)` produced with `kat-keypair-003`. It also pins that the same signature does NOT verify when `timestamp` is instead encoded as an 8-byte big-endian integer, so the ASCII-decimal encoding is machine-checkable rather than a matter of prose interpretation.
 
 ### 3.2 Verification steps
 
@@ -239,7 +239,7 @@ pinned_keys:
       - "macp.mode.task.v1"
 ```
 
-The canonical schema is [`schemas/json/aitp-trust-anchors.schema.json`](../schemas/json/aitp-trust-anchors.schema.json).
+The canonical schema is [`schemas/json/aitp-trust-anchors.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-trust-anchors.schema.json).
 
 ### 4.1 Distribution modes
 
@@ -249,7 +249,7 @@ The canonical schema is [`schemas/json/aitp-trust-anchors.schema.json`](../schem
 | `well_known_endpoint` | Fetched from `https://<issuer>/.well-known/aitp-keys`. |
 | `out_of_band` | Manually provisioned (air-gapped / offline environments). |
 
-See [RFC-AITP-0007 Key Resolution](key-resolution) for resolution order and failure handling.
+See [RFC-AITP-0007 Key Resolution](/spec/key-resolution) for resolution order and failure handling.
 
 ---
 
@@ -285,7 +285,7 @@ Peers receiving an unknown `type` MUST respond with `IDENTITY_FAILED`. New types
 - [RFC 7638 — JSON Web Key Thumbprint](https://datatracker.ietf.org/doc/html/rfc7638)
 - [RFC 7800 — Proof-of-Possession Key Semantics for JWTs (`cnf`)](https://datatracker.ietf.org/doc/html/rfc7800)
 - [RFC 9449 — OAuth 2.0 Demonstrating Proof of Possession (DPoP)](https://datatracker.ietf.org/doc/html/rfc9449)
-- [RFC-AITP-0001 Core](core)
-- [RFC-AITP-0003 Agent Manifest](manifest)
-- [RFC-AITP-0004 Mutual Handshake](mutual-handshake)
-- [RFC-AITP-0007 Key Resolution](key-resolution)
+- [RFC-AITP-0001 Core](/spec/core)
+- [RFC-AITP-0003 Agent Manifest](/spec/manifest)
+- [RFC-AITP-0004 Mutual Handshake](/spec/mutual-handshake)
+- [RFC-AITP-0007 Key Resolution](/spec/key-resolution)

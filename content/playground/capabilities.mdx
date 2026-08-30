@@ -78,12 +78,12 @@ same defaults. A slimmed-down wheel only appears if someone builds with
 `--no-default-features` — the probe above is what keeps that (or an old
 0.3.x wheel) from crashing scenarios. The Docker build compiles the wheel
 from the sibling `aitp-rs` source; its `INSTALL_EXTRAS` wiring is in
-[docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker).
+[docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker.md).
 The Cargo feature gates and what each one turns on are documented by the
 SDK itself —
-[aitp-rs · sdk-python.md § Build](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python#build)
+[aitp-rs · sdk-python.md § Build](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#build)
 and the
-[aitp-py README](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/README).
+[aitp-py README](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/README.md).
 
 ## Graceful degradation
 
@@ -104,7 +104,7 @@ The feature-gated step types and their scenarios:
 | `spki_pinning` | `spki_pin_check` | `intra-org/spki-pinning` |
 | `multihop_delegation` | `delegate` / `redeem_delegation` (2-hop) | `intra-org/delegation-multihop` |
 
-See [aitp-integration.md](aitp-integration#post-v01-experimental-surfaces)
+See [aitp-integration.md](/playground/aitp-integration#post-v01-experimental-surfaces)
 for where each SDK surface is actually called.
 
 ## Conformance harness
@@ -116,7 +116,7 @@ located as a sibling checkout) and reports which ones the installed wheel
 could execute. It's a metadata/readiness report — it does **not** run the
 fixtures; it classifies them. (The fixtures are owned by the spec; the
 SDK's own pass/fail status against them is the
-[aitp-rs conformance matrix](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/conformance#v02-conformance-matrix).)
+[aitp-rs conformance matrix](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/conformance.md#v02-conformance-matrix).)
 
 Run it from the CLI:
 
@@ -154,7 +154,7 @@ Each fixture carries metadata (`id`, `rfc`, `status`, `required_for_v0_1`,
 
 ## Where to read next
 
-- What each SDK feature actually does → [aitp-rs · sdk-python.md](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python)
-- How each post-v0.1 surface is wired in the playground → [aitp-integration.md](aitp-integration#post-v01-experimental-surfaces)
-- Which scenario demonstrates each feature → [scenarios.md](scenarios#scenarios-in-the-box)
-- Building the wheel in Docker → [docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker)
+- What each SDK feature actually does → [aitp-rs · sdk-python.md](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md)
+- How each post-v0.1 surface is wired in the playground → [aitp-integration.md](/playground/aitp-integration#post-v01-experimental-surfaces)
+- Which scenario demonstrates each feature → [scenarios.md](/playground/scenarios#scenarios-in-the-box)
+- Building the wheel in Docker → [docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker.md)

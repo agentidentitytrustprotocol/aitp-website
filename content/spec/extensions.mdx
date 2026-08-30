@@ -36,7 +36,7 @@ Extensions are namespaced. Vendor-specific extensions SHOULD use reverse-domain 
 
 ### 1.1 The `ext` claim on compact-JWS artifacts
 
-On the compact-JWS portable trust artifacts — the TCT, the grant voucher, and the delegation token ([RFC-AITP-0001 §5.4.5](core#545-compact-jws-profile-portable-trust-artifacts)) — the OPTIONAL `ext` private claim mirrors this `extensions` slot. The same namespacing and reservation rules apply to keys inside `ext`: unknown keys inside `ext` MUST be ignored (unknown claims *outside* `ext` MUST be rejected, per RFC-AITP-0005 §2 and RFC-AITP-0006). Extension families reserved in this RFC are reserved under both spellings: `extensions.<key>` on JCS-signed protocol payloads (envelope, Manifest) and `ext.<key>` on JWS claims objects.
+On the compact-JWS portable trust artifacts — the TCT, the grant voucher, and the delegation token ([RFC-AITP-0001 §5.4.5](/spec/core#545-compact-jws-profile-portable-trust-artifacts)) — the OPTIONAL `ext` private claim mirrors this `extensions` slot. The same namespacing and reservation rules apply to keys inside `ext`: unknown keys inside `ext` MUST be ignored (unknown claims *outside* `ext` MUST be rejected, per RFC-AITP-0005 §2 and RFC-AITP-0006). Extension families reserved in this RFC are reserved under both spellings: `extensions.<key>` on JCS-signed protocol payloads (envelope, Manifest) and `ext.<key>` on JWS claims objects.
 
 ---
 
@@ -102,7 +102,7 @@ Verifier implementations for these circuits will be specified in a future RFC.
 
 ## 4. Selective-Disclosure Grant Voucher (`ext.sd_grant`)
 
-The grant voucher (RFC-AITP-0005 §8) embedded in a delegation token discloses the delegator's **complete** grant profile to the delegate and to every downstream verifier — see the privacy note in [RFC-AITP-0006 §5.4](delegation#54-privacy-the-voucher-discloses-bs-full-grant-profile). This RFC reserves the `sd_grant` extension key as the hook for an SD-JWT-style ([draft-ietf-oauth-selective-disclosure-jwt](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/)) selective-disclosure voucher: the issuing peer signs hashed grant disclosures, and the delegator reveals only the delegated subset.
+The grant voucher (RFC-AITP-0005 §8) embedded in a delegation token discloses the delegator's **complete** grant profile to the delegate and to every downstream verifier — see the privacy note in [RFC-AITP-0006 §5.4](/spec/delegation#54-privacy-the-voucher-discloses-bs-full-grant-profile). This RFC reserves the `sd_grant` extension key as the hook for an SD-JWT-style ([draft-ietf-oauth-selective-disclosure-jwt](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/)) selective-disclosure voucher: the issuing peer signs hashed grant disclosures, and the delegator reveals only the delegated subset.
 
 ```json
 {
@@ -141,8 +141,8 @@ The contents of `extensions.zk`, `extensions.tee`, and `ext.sd_grant` are non-no
 
 ## 7. References
 
-- [RFC-AITP-0001 Core](core)
-- [RFC-AITP-0005 Trust Context Token](tct)
-- [RFC-AITP-0006 Single-Hop Delegation](delegation)
-- [RFC-AITP-0009 Security](security)
+- [RFC-AITP-0001 Core](/spec/core)
+- [RFC-AITP-0005 Trust Context Token](/spec/tct)
+- [RFC-AITP-0006 Single-Hop Delegation](/spec/delegation)
+- [RFC-AITP-0009 Security](/spec/security)
 - [SD-JWT — Selective Disclosure for JWTs (draft-ietf-oauth-selective-disclosure-jwt)](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/)

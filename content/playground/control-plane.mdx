@@ -15,17 +15,17 @@ with a CP when one is wired up.
 > `CP_BASE_URL` is empty (the default), discovery returns `[]`, ingest is
 > a no-op, observability proxies return `cp_enabled: false`, and CP-only
 > workflow steps emit `step.skipped`. See
-> [architecture.md](architecture) for where this sits.
+> [architecture.md](/playground/architecture) for where this sits.
 
 > **The CP is a separate service with its own docs — this page does not
 > restate them.** Endpoint request/response shapes, auth, idempotency, the
 > event envelope, and the database schema live in the control-plane repo:
-> [api.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/api) ·
-> [events.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/events) ·
-> [data-model.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/data-model).
+> [api.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/api.md) ·
+> [events.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/events.md) ·
+> [data-model.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/data-model.md).
 > The stable contract the playground actually depends on (and what the CP
 > may/may not change without coordination) is the CP's
-> [integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground).
+> [integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground.md).
 > This page is only the **playground side**: which playground feature calls
 > which CP endpoint, and what happens when the CP is absent.
 
@@ -40,7 +40,7 @@ CP_TIMEOUT_MS=5000                    # per-request timeout (default 5000)
 `CpClient.enabled` is simply `bool(settings.cp_base_url)`. The Dockerized
 e2e suite (`docker-compose.test.yml`) brings up a Postgres + CP + playground
 stack and points `CP_BASE_URL` at the in-network CP container — see
-[docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker).
+[docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker.md).
 
 ## Two clients, one CP
 
@@ -57,7 +57,7 @@ straight:
    agent verifies that signature before applying any entry. The playground
    never enrolls on an agent's behalf; it pokes the agent's `/admin`
    route and the agent makes the call itself (the same boundary rule as
-   the AITP protocol — see [aitp-integration.md](aitp-integration)).
+   the AITP protocol — see [aitp-integration.md](/playground/aitp-integration)).
 
 ## CP endpoints the playground uses
 
@@ -65,7 +65,7 @@ Every method below lives on `CpClient` and degrades to the documented
 fallback when the CP is disabled or any HTTP error occurs. This table is
 the playground's **dependency surface** — for each endpoint's exact
 request/response shape, auth, and filters, follow it into the CP's
-[api.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/api).
+[api.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/api.md).
 
 | `CpClient` method | CP endpoint | Used by | Fallback |
 | --- | --- | --- | --- |
@@ -111,7 +111,7 @@ still completes.
 ## CP-backed workflow steps
 
 These step types only do CP work; each emits `step.skipped` when the CP is
-disabled. Full field reference is in [scenarios.md](scenarios#workflow-steps).
+disabled. Full field reference is in [scenarios.md](/playground/scenarios#workflow-steps).
 
 | Step type | What it does | Demo scenario |
 | --- | --- | --- |
@@ -190,7 +190,7 @@ post-run batch re-sending those events creates no duplicates.
 
 Which event types the CP recognizes vs. merely stores, and which it fans
 out to webhooks, is the CP's
-[events.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/events).
+[events.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/events.md).
 
 ## What lives where (boundary check)
 
@@ -217,8 +217,8 @@ out to webhooks, is the CP's
 
 ## Where to read next
 
-- The CP itself (API, events, data model, ops, deploy) → [aitp-control-plane · docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README)
-- The stable playground↔CP contract → [integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground)
-- Trust discovery internals → [aitp-integration.md](aitp-integration#peer-discovery-trustorchestratorresolve_peers)
-- Webhook/event surfacing in the UI → [observability.md](observability)
-- The CP-backed scenarios end-to-end → [scenarios.md](scenarios#scenarios-in-the-box)
+- The CP itself (API, events, data model, ops, deploy) → [aitp-control-plane · docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md)
+- The stable playground↔CP contract → [integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground.md)
+- Trust discovery internals → [aitp-integration.md](/playground/aitp-integration#peer-discovery-trustorchestratorresolve_peers)
+- Webhook/event surfacing in the UI → [observability.md](/playground/observability)
+- The CP-backed scenarios end-to-end → [scenarios.md](/playground/scenarios#scenarios-in-the-box)

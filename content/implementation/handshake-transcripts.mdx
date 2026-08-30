@@ -74,7 +74,7 @@ Two byte-encoding rules cause most cross-language interop failures, so
 they are called out explicitly:
 
 - **JCS canonicalisation** (RFC 8785): lex-sorted keys at every depth, no
-  whitespace, ECMAScript number formatting. See [JCS](jcs).
+  whitespace, ECMAScript number formatting. See [JCS](/implementation/jcs).
 - **PoP / nonce inputs are hashed over the *decoded* nonce bytes**, never
   the base64url string. RFC-AITP-0001 §5.4.2 is the unified rule for all
   four PoP sites (pinned-key proof, manifest PoP, handshake
@@ -155,7 +155,7 @@ base64url-decoding the 22-char nonce string** — *not* the ASCII bytes of
 the base64url form. RFC-AITP-0001 §5.4.2 makes this the unified,
 normative rule across every PoP site and explicitly flags hashing the
 base64url string as non-conformant. (The shortened renewal exchange,
-[TCT renewal](tct-renewal), uses the identical construction.)
+[TCT renewal](/implementation/tct-renewal), uses the identical construction.)
 
 ### M4 — `mutual_commit_ack` (Bob → Alice)
 
