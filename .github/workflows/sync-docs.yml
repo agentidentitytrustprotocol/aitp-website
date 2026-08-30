@@ -122,6 +122,11 @@ jobs:
       - name: Validate synced content
         if: steps.changes.outputs.changed == 'true'
         run: |
+          # The source repos are checked out *inside* this repo, so `eslint .`
+          # and `tsc` would walk into them and fail on their dependencies. They
+          # have already been consumed by the sync, so drop them and validate
+          # against the same tree a PR checkout would have.
+          rm -rf ./*-repo
           npm ci
           npm run lint
           npm run typecheck
