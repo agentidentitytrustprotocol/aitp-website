@@ -6,11 +6,11 @@ import {
   Cpu,
   Layers,
   Database,
-  Github,
   Users,
   Route,
   FlaskConical,
 } from 'lucide-react';
+import { GithubMark } from '@/components/github-mark';
 import type { ReactNode } from 'react';
 
 interface EcosystemItem {
@@ -88,7 +88,7 @@ const buildItems: EcosystemItem[] = [
 
 const contributeItems: EcosystemItem[] = [
   {
-    icon: <Github className="h-6 w-6" />,
+    icon: <GithubMark className="h-6 w-6" />,
     title: 'GitHub',
     description:
       'All source repositories, issues, discussions, and CI. Everything is open under Apache 2.0.',

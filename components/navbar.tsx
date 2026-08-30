@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Github, Menu, Moon, Sun, X } from 'lucide-react';
+import { Menu, Moon, Sun, X } from 'lucide-react';
+import { GithubMark } from '@/components/github-mark';
 import { Logo } from '@/components/logo';
 import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
@@ -74,7 +75,7 @@ export function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center px-2 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
           >
-            <Github className="size-5" />
+            <GithubMark className="size-5" />
           </Link>
           {mounted && (
             <button

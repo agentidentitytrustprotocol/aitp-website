@@ -8,8 +8,8 @@ import {
   Users,
   GitPullRequest,
   FileText,
-  Github,
 } from 'lucide-react';
+import { GithubMark } from '@/components/github-mark';
 import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
@@ -71,7 +71,7 @@ const communityLinks: CommunityLink[] = [
     external: true,
   },
   {
-    icon: <Github className="h-6 w-6" />,
+    icon: <GithubMark className="h-6 w-6" />,
     title: 'GitHub Organization',
     description:
       'Browse all AITP repositories: specification, reference implementation, control plane, playground, and console.',
