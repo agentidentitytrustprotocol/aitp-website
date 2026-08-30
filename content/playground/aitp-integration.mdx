@@ -47,7 +47,7 @@ engine.
 | `agent.new_session()` + `build_hello`, `process_hello_ack`, `complete` | `agents/base/agent_admin.py` (in `/admin/initiate-handshake`) | The initiator side. |
 | `agent.verify_tct(tct_token, required_grant, expected_audience=…, revoked_jtis=…)` | `agents/base/aitp_server.py` (`verify_capability_tct`) | Per-call authorization on `/capabilities/<name>`. |
 | `agent.build_delegation(held_tct, delegatee_aid, pk, scope, ttl)` | `agents/base/agent_admin.py` (`/admin/delegate`) | Mint a DelegationToken from a held TCT. |
-| `aitp.verify_delegation(token_json, my_aid)` | `agents/base/aitp_server.py` (`/aitp/delegation/redeem`) | Verify a presented DelegationToken before issuing a fresh TCT. |
+| `aitp.verify_delegation(token_json, my_aid, revoked_jtis)` | `agents/base/aitp_server.py` (`/aitp/delegation/redeem`) | Verify a presented DelegationToken before issuing a fresh TCT. The deny-set argument is RFC-AITP-0006 §4 step 7 — a revoked source jti MUST refuse a fresh TCT. |
 | `agent.issue_tct_for_delegatee(verified)` | `agents/base/aitp_server.py` (`/aitp/delegation/redeem`) | Mint the redeemed TCT bound to the delegatee's key. |
 
 That covers the **core surface**. The post-v0.1 surfaces below add a
@@ -62,12 +62,81 @@ degrade cleanly ([capabilities.md](capabilities)):
 | `agent.verify_tct_cached(tct_token, grant, store, …)` | `aitp_server.py` (`verify_capability_tct`) | TCT verification with an `aitp.TctStore` cache on the hot path. |
 | `agent.build_renewal_request(tct_token)` / `agent.process_renewal_request(req, …)` | `agent_admin.py` (`/admin/renew-tct`, `/admin/process-renewal`) | RFC-AITP-0013 in-band TCT renewal (holder + issuer sides). |
 | `aitp.SessionBundleBuilder(agent)` + `aitp.verify_session_bundle(env, aid)` | `agent_admin.py` (`/admin/export…`, `/admin/verify-session-bundle`) | RFC-AITP-0010 session-bundle export + verify. |
-| `aitp.verify_delegation_multihop(token, aid)` | `aitp_server.py` (`/aitp/delegation/redeem`) | RFC-AITP-0011 multi-hop delegation verify (replaces `verify_delegation` when enabled). |
+| `aitp.verify_manifest_json(envelope)` | `agent_admin.py` (`/admin/initiate-handshake`, `/admin/delegate`), `runner/engine.py` (`cp_provision_trust_anchor`) | Verify a peer `ManifestEnvelope` before reading the AID or endpoint out of it. |
+| `aitp.verify_delegation_multihop(token, aid, max_hops, revoked_jtis)` | `aitp_server.py` (`/aitp/delegation/redeem`) | RFC-AITP-0011 multi-hop delegation verify (replaces `verify_delegation` when enabled). `revoked_jtis` is consulted once for the root voucher's `src_jti` and once per hop (RFC-AITP-0011 §6). |
 | `aitp.AitpAgent.generate(suite=…)` + `agent.build_manifest(...)` | `aitp_server.py` (`/admin/rotate-keys`) | RFC-AITP-0007 key rotation — fresh keypair + republished manifest. |
 | `aitp.compute_spki_hash(der)` + `aitp.SpkiPinVerifier(...)` | engine (`spki_pin_check` step) | SPKI client-cert pin computation + verification. |
 
-Everything else is HTTP plumbing or telemetry. The boundary still holds:
-no envelope is parsed, canonicalized, or signed outside the SDK.
+Everything else is HTTP plumbing or telemetry. The boundary is: **nothing
+security-relevant is decided outside the SDK** — no envelope is canonicalized
+or signed here, and every trust decision routes through an SDK verify call.
+
+That is deliberately narrower than "no envelope is parsed outside the SDK",
+which this repo said until it stopped being true. JSON *is* read outside the
+SDK in three places, and each is fine only because the SDK made the decision
+first or the value is not load-bearing:
+
+- peer manifests are `json.loads`'d after `verify_manifest_json` has verified
+  the envelope (`agent_admin.py`, `runner/engine.py`);
+- TCT claims are decoded unverified by `tct_claims.decode_claims` for a precise
+  403, an issuer guard, and the declared audience — `verify_tct` is still the
+  gate (see "What you can ignore" below);
+- the revocation snapshot is parsed only after `aitp.verify_revocation_list`
+  has verified the envelope against the pinned issuer AID
+  (`refresh_revocations()` in `agents/base/revocation_refresh.py`).
+
+Parsing is not the property that matters; *deciding* is.
+
+**The revocation snapshot has one ingest, and it verifies.** The snapshot
+served at `/.well-known/aitp-revocation-list` is fetched and checked in exactly
+one place — `refresh_revocations()` in `agents/base/revocation_refresh.py`.
+Three callers reach it: the `/admin/refresh-revocations` route, the start-up
+refresh, and the background poll — the latter two in-process by design, never
+looping back over HTTP. It calls `aitp.verify_revocation_list`
+against the AID pinned in `CP_AID` before reading a single entry; a snapshot
+that fails to verify is **discarded**, and the previously verified one stays
+current (RFC-AITP-0008 §1.5). Absent a pin there is no expected issuer to check
+against, so the snapshot is discarded too — the fail-closed direction. The
+deny-set is no longer only as trustworthy as the transport that delivered it.
+
+`RevocationState` (`agents/base/revocation_state.py`) only *holds* that
+decision; it verifies nothing itself, deliberately, so it cannot become a
+second hand-rolled trust boundary.
+
+`CpClient` has no counterpart. It carried a `fetch_revocation_list()` that
+parsed the envelope signature-blind, and it was deleted rather than taught to
+verify: nothing in `src/` called it, and two ingest paths for the same signed
+artifact is the condition that let the signature-blind version survive in the
+first place. If service-side code ever needs the deny-set, it goes through the
+verifying path — it does not grow a second one.
+
+Peer **manifest signatures** were the same shape of gap and are now checked at
+all three sites that ingest one: the handshake (`/admin/initiate-handshake`),
+delegation (`/admin/delegate`), and the runner before it pins a key into the
+CP's trust store (`runner/engine.py`). Each calls `aitp.verify_manifest_json`
+before reading any field out of the envelope.
+
+Note precisely what that establishes: the envelope was minted by the holder of
+the AID it declares. It is **self-certifying, not trust-anchored** — it does not
+prove that AID is the peer you meant. Two consequences worth keeping straight:
+
+- For `did:web`, the DID document supplies the manifest **endpoint**
+  (`serviceEndpoint`), not a key or an AID (`trust/resolver.py`). So the chain
+  is DID → endpoint → whatever manifest that endpoint serves; and the federated
+  stack resolves that first hop over plain HTTP under
+  `AITP_DIDWEB_INSECURE_HOSTS`.
+- At the runner's CP trust-anchor site the expected AID **is** known — the
+  runner launched the agent — and the site uses it: after
+  `verify_manifest_json` passes, `runner/engine.py` compares the manifest's
+  declared `aid` against `ra.aid`, the AID the supervisor read from the
+  spawned process's own `AITP_AGENT_READY` line over a parent-child pipe, not
+  off the network. A mismatch raises `PlaygroundError` and the fetch is
+  refused before any key is pinned. This closes the gap authenticity alone
+  leaves open here: launch and manifest-fetch are separate channels, so
+  without the comparison, whatever answers at a launched agent's port —
+  including a substitute that took the port after the real agent died between
+  reporting ready and being provisioned — could serve its own genuinely-signed
+  manifest and have its key trusted as that agent's (D-8).
 
 ## Identity
 
@@ -128,7 +197,7 @@ embed `localhost:8101` and friends to keep it on-machine).
 
 ### `cp_registry`
 For agents marked `org: external`:
-1. Query `GET <CP_BASE_URL>/registry/agents?capability=<hint>` where
+1. Query `GET <CP_BASE_URL>/api/registry/agents?capability=<hint>` where
    the hint is the first workflow capability the runner sees for that
    agent.
 2. If the CP responds with anything, take the first result's
@@ -191,19 +260,21 @@ def verify_capability_tct(self, tct_token, required_grant):
     if not tct_token: raise 403 "missing X-AITP-TCT"
     claims = decode_claims(tct_token)        # unverified claims, for precise 403s
     jti = claims.get("jti", "")
-    if jti and jti in self.revoked_jtis:
-        raise 403 f"tct revoked: jti={jti}"
+    if jti and self.revocation.is_revoked(jti):
+        source = "local" if self.revocation.is_locally_revoked(jti) else "cp-snapshot"
+        raise 403 f"tct revoked ({source}): jti={jti}"
+    self._enforce_revocation_freshness()     # 403 unless fail_mode == "soft_fail"
     if claims.get("iss") and claims["iss"] != self.agent.aid:
         raise 403 "tct issuer mismatch"      # e.g. issued pre-key-rotation
     declared_audience = claims.get("aud") or claims.get("sub")
     return self.agent.verify_tct(            # or verify_tct_cached(...) with a TctStore
         tct_token, required_grant,
         expected_audience=declared_audience,
-        revoked_jtis=self.revoked_jtis,
+        revoked_jtis=self.revocation.effective_jtis,
     )
 ```
 
-Three checks before/inside the SDK call:
+Four checks before/inside the SDK call:
 
 1. **Local revocation short-circuit** (playground choice). The spec
    ([RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation))
@@ -211,13 +282,23 @@ Three checks before/inside the SDK call:
    jti can't probe the deny set. The demo checks first — every jti in our
    deny set was observed via a prior handshake, so the early-out is safe
    and gives a precise 403. It's fail-closed either way: the same
-   `revoked_jtis` set is also passed into the SDK, which re-checks it
-   after signature verification. (See
-   [Revocation](#revocation-rfc-aitp-0008) below.)
-2. **Issuer-AID guard.** TCTs this resource server issued must declare
+   union — `revocation.effective_jtis`, local revocations ∪ the verified
+   CP snapshot — is also passed into the SDK as `revoked_jtis`, which
+   re-checks it after signature verification. The 403 names its source
+   (`local` vs `cp-snapshot`), because "we revoked this" and "the control
+   plane says someone revoked this" send an operator to different places.
+   (See [Revocation](#revocation-rfc-aitp-0008) below.)
+2. **Revocation-freshness guard.** Checked *after* the deny-set, so a
+   genuine revocation keeps its own reason. If revocation verification is
+   configured but there is no fresh verified snapshot, the call is refused
+   under the default `fail_mode="fail_closed"`; `soft_fail` proceeds on the
+   last verified deny-set and logs. This is only about the *absence* of a
+   fresh snapshot — an unverifiable one was already discarded at ingest and
+   no mode here can resurrect it.
+3. **Issuer-AID guard.** TCTs this resource server issued must declare
    *its* AID as `iss`. After a key rotation the AID changes, so TCTs
    minted under the old key fail here before the signature path runs.
-3. **SDK `verify_tct`, presented-TCT mode.** The playground passes the
+4. **SDK `verify_tct`, presented-TCT mode.** The playground passes the
    TCT's own declared `aud` (defaulting to `sub`) as `expected_audience` —
    the resource-server check for a TCT a peer presented in `X-AITP-TCT`.
    The signature check against the issuer key derived from `iss` is the
@@ -265,7 +346,8 @@ delegator (researcher)            delegatee (sub-researcher)        verifier (wr
   ── returns DT ──►          (DT in hand)
                               /admin/redeem-delegation              
                                 POST DT to writer /aitp/delegation/redeem ──►
-                                                                    verify_delegation(DT, writer.aid)
+                                                                    verify_delegation(DT, writer.aid,
+                                                                      deny_set)
                                                                     issue_tct_for_delegatee(verified)
                                                                     → TCT_BC bound to sub's key
                               ◄── fresh TCT_BC ──────────────────── 
@@ -289,14 +371,16 @@ sequences the calls):
 
 ## Revocation (RFC-AITP-0008)
 
-Revocation is local to the issuer:
+Revocation starts local to the issuer, and a signed snapshot can add to it:
 
 1. The runner's `revoke_tct` step finds the jti of the TCT `issuer`
    granted to `audience` by walking the event log
    (`ScenarioRunner._find_tct_jti`) and POSTs it to the issuer's
    `/admin/revoke-tct`.
-2. The issuer adds it to `revoked_jtis` (mutates the same set
-   `AitpServer` consults).
+2. The issuer records it as a **local** revocation on the shared
+   `RevocationState` that `AitpServer` enforces against. Local revocations
+   are held apart from the CP-derived snapshot and are never cleared by a
+   refresh — a CP snapshot cannot un-revoke what an operator revoked here.
 3. Subsequent capability calls that present that jti hit the local
    revocation short-circuit and 403.
 
@@ -304,9 +388,12 @@ By default no revocation list is published over the wire — local deny-set
 fail-closed is all the base demo needs
 ([RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation)
 defines the signed-list distribution model). The `revoke_tct` step's
-`via_cp: true` mode *does* exercise the full path — publish to the Control
-Plane and have the audience pull the CP's signed
-`/.well-known/aitp-revocation-list`; see
+`via_cp: true` mode exercises the **data** path — publish to the Control Plane
+and have an unrelated peer pull `/.well-known/aitp-revocation-list` into its
+deny-set. The snapshot's signature *is* checked before any entry is applied. What the
+scenario still does not show, as its own summary says, is a step driving a call
+whose outcome depends on the CP-derived deny-set — the final 403 comes from the
+issuer's *local* set. See
 [control-plane.md](control-plane#cp-backed-workflow-steps).
 
 ## Post-v0.1 experimental surfaces
@@ -340,7 +427,16 @@ should be doing it instead:
   short-circuit, the issuer-AID guard, and the declared audience;
   everything security-relevant routes through `verify_tct`).
 - Canonicalize JSON for signing.
-- Verify a signature.
+- Verify a signature — **in `src/` or `agents/`**. Test code is the one
+  carve-out, and it is deliberate: when the SDK itself is the thing under
+  test, verifying with the SDK is circular. It would pass under *any*
+  self-consistent convention, including a wrong one — which is exactly how a
+  wrapped-form revocation signing input survived a full release across this
+  family before 0.5.0. `tests/unit/test_revocation_signing_convention.py`
+  therefore verifies with `cryptography` plus an independent RFC 8785
+  canonicalizer vendored in `tests/unit/_jcs_reference.py`. The oracle has to
+  be independent of the artifact under test. Do not "fix" that into
+  circularity.
 - Build any AITP message by hand.
 - Track handshake state across multiple requests (the responder map
   in `AitpServer._sessions` is keyed by `session_id` from the SDK,
