@@ -18,13 +18,24 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
+
+    env:
+      # This repo is the org's only private one, and on the Free plan
+      # organization secrets reach public repos only — so AITP_BOT_APP_ID
+      # arrives empty here even though it is set at the org level and works
+      # in every sibling repo. Detect that instead of dying on it (#30).
+      HAS_APP_TOKEN: ${{ secrets.AITP_BOT_APP_ID != '' }}
 
     steps:
-      # Author the sync PR as the aitp-deps-bot App so its checks run without
-      # manual approval (a PR opened with the default GITHUB_TOKEN is gated as
-      # `action_required` and never triggers CI on its own).
+      # Prefer the aitp-deps-bot App: a PR it authors triggers CI on its own,
+      # where a GITHUB_TOKEN-authored one does not. Skipped when the secret is
+      # unavailable; the fallback is GITHUB_TOKEN, which is how this workflow
+      # ran successfully until the App token became mandatory in #17. The
+      # `Validate` step below covers what the PR's own CI then misses.
       - name: Mint GitHub App token
         id: app
+        if: env.HAS_APP_TOKEN == 'true'
         uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.AITP_BOT_APP_ID }}
@@ -33,7 +44,7 @@ jobs:
       - name: Checkout website repo
         uses: actions/checkout@v7
         with:
-          token: ${{ steps.app.outputs.token }}
+          token: ${{ steps.app.outputs.token || github.token }}
 
       # Source-repo checkouts. Each `path` MUST be `<repo-name>-repo` so that
       # scripts/sync-content.sh resolves it (resolve_repo checks <name>-repo first).
@@ -98,11 +109,30 @@ jobs:
         run: |
           git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
+      # The sync PR does not reliably carry its own CI (a GITHUB_TOKEN-authored
+      # PR does not trigger workflows), so prove the content builds here rather
+      # than trusting a check that may never run.
+      - name: Set up Node
+        if: steps.changes.outputs.changed == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Validate synced content
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm run check-links
+          npm run build
+
       - name: Create PR with updated content
         if: steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ steps.app.outputs.token }}
+          token: ${{ steps.app.outputs.token || github.token }}
           commit-message: 'docs: sync content from source repos'
           title: 'docs: sync content from source repos'
           body: |
@@ -114,3 +144,36 @@ jobs:
             - **Console** (`aitp-ui-console`) — console docs (noindex)
           branch: automated/sync-docs
           delete-branch: true
+
+      # Seven weeks of daily failures went unnoticed once (#30). A failed sync
+      # means the published spec may be silently wrong, so say so somewhere a
+      # human looks. One open issue at a time; re-runs comment on it instead.
+      - name: Report a failed sync
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          existing=$(gh issue list --label sync-failure --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Sync failed again: $RUN"
+            exit 0
+          fi
+          gh label create sync-failure --color b60205 \
+            --description 'The docs sync is failing' --force >/dev/null 2>&1 || true
+          {
+            echo "The docs sync failed, so \`content/\` is no longer tracking the source repos."
+            echo
+            echo "Until this is fixed the site may publish superseded spec text."
+            echo "That is how #28 happened: a normative RFC correction stayed unpublished"
+            echo "for seven weeks because nothing reported the failure."
+            echo
+            echo "Failed run: $RUN"
+            echo
+            echo "To sync by hand meanwhile: run \`./scripts/sync-content.sh\`,"
+            echo "commit \`content/\`, and open a PR."
+          } > /tmp/sync-failure.md
+          gh issue create --label sync-failure \
+            --title 'ci: docs sync is failing — published content may be stale' \
+            --body-file /tmp/sync-failure.md
