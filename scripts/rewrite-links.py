@@ -14,6 +14,10 @@ sync manifest — and then rewrites it one of two ways:
   * the target is itself synced  -> the site route for it  (/spec/core#anchor)
   * the target is not synced     -> its canonical GitHub URL
 
+The same map also redirects full GitHub URLs that source repos use to cite each
+other, so a reader following "see RFC-AITP-0005" from the playground docs lands
+on /spec/tct rather than on raw Markdown.
+
 Doing it from the origin path is what makes both cases correct. A pure textual
 pass cannot tell `docs/sdk-python.md` (a page, at /sdks/python) from
 `docs/design/foo.md` (not synced) without knowing where the link is written.
@@ -29,6 +33,11 @@ BRANCH = "main"
 # Markdown links and images, excluding anchors already pointing at a URL.
 LINK = re.compile(r'(!?\[[^\]]*\]\()([^)\s]+?)((?:\s+"[^"]*")?\))')
 FENCE = re.compile(r'^\s*(```|~~~)')
+# A source repo linking to another source repo's file by full URL. When that
+# file is published here, the rendered page is the better destination than the
+# raw Markdown on GitHub.
+GITHUB_BLOB = re.compile(
+    r'^https://github\.com/' + ORG + r'/([\w.-]+)/blob/[^/]+/([^#?\s]+)(#[^\s]*)?$')
 
 
 def load_manifest(path):
@@ -69,6 +78,13 @@ def split_anchor(target):
 
 
 def rewrite_target(target, repo, repo_dir, route_of):
+    m = GITHUB_BLOB.match(target)
+    if m:
+        # Only when that exact file is published here; `schemas/`, `crates/`,
+        # `governance/`, `internal_docs/` and friends keep pointing at GitHub.
+        route = route_of.get((m.group(1), m.group(2)))
+        return route + (m.group(3) or "") if route else None
+
     if re.match(r'^[a-z][a-z0-9+.-]*:', target) or target.startswith(("//", "#", "/")):
         return None  # absolute URL, mailto:, bare anchor, or already a site route
 

@@ -20,12 +20,12 @@ with a CP when one is wired up.
 > **The CP is a separate service with its own docs — this page does not
 > restate them.** Endpoint request/response shapes, auth, idempotency, the
 > event envelope, and the database schema live in the control-plane repo:
-> [api.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/api.md) ·
-> [events.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/events.md) ·
-> [data-model.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/data-model.md).
+> [api.md](/control-plane/api) ·
+> [events.md](/control-plane/events) ·
+> [data-model.md](/control-plane/data-model).
 > The stable contract the playground actually depends on (and what the CP
 > may/may not change without coordination) is the CP's
-> [integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground.md).
+> [integration-playground.md](/control-plane/integration-playground).
 > This page is only the **playground side**: which playground feature calls
 > which CP endpoint, and what happens when the CP is absent.
 
@@ -65,7 +65,7 @@ Every method below lives on `CpClient` and degrades to the documented
 fallback when the CP is disabled or any HTTP error occurs. This table is
 the playground's **dependency surface** — for each endpoint's exact
 request/response shape, auth, and filters, follow it into the CP's
-[api.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/api.md).
+[api.md](/control-plane/api).
 
 | `CpClient` method | CP endpoint | Used by | Fallback |
 | --- | --- | --- | --- |
@@ -190,7 +190,7 @@ post-run batch re-sending those events creates no duplicates.
 
 Which event types the CP recognizes vs. merely stores, and which it fans
 out to webhooks, is the CP's
-[events.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/events.md).
+[events.md](/control-plane/events).
 
 ## What lives where (boundary check)
 
@@ -218,7 +218,7 @@ out to webhooks, is the CP's
 ## Where to read next
 
 - The CP itself (API, events, data model, ops, deploy) → [aitp-control-plane · docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md)
-- The stable playground↔CP contract → [integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground.md)
+- The stable playground↔CP contract → [integration-playground.md](/control-plane/integration-playground)
 - Trust discovery internals → [aitp-integration.md](/playground/aitp-integration#peer-discovery-trustorchestratorresolve_peers)
 - Webhook/event surfacing in the UI → [observability.md](/playground/observability)
 - The CP-backed scenarios end-to-end → [scenarios.md](/playground/scenarios#scenarios-in-the-box)

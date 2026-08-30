@@ -30,9 +30,9 @@ engine.
 > semantics behind them, read the authoritative sources instead of relying
 > on the summaries here:
 > - The `aitp` Python API, call by call, with RFC sections + feature flags →
->   [aitp-rs · sdk-python.md](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md).
+>   [aitp-rs · sdk-python.md](/sdks/python).
 > - The normative wire protocol →
->   [AITP RFCs](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/README.md).
+>   [AITP RFCs](/spec).
 >
 > Each RFC reference below links the specific spec; if a summary here and an
 > RFC ever disagree, the RFC wins.
@@ -165,7 +165,7 @@ calls `aitp.AitpAgent.from_seed(bytes.fromhex(seed_hex))`.
 - `ttl_secs` from the manifest YAML.
 
 The wire schema is owned by the SDK
-([RFC-AITP-0003](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0003-manifest.md)).
+([RFC-AITP-0003](/spec/manifest)).
 The playground only fishes `offered_capabilities`, `handshake_endpoint`,
 `aid`, and `identity_hint.public_key` out of it when constructing requests.
 
@@ -174,9 +174,9 @@ The playground only fishes `offered_capabilities`, `handshake_endpoint`,
 Resolves `{agent_id: {manifest_url, did, source?}}` based on the
 scenario's `spec.trust.discovery`. The discovery models themselves
 (`did:web`, registry lookup) are described in the spec's
-[discovery guide](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/docs/discovery.md);
+[discovery guide](/docs/discovery);
 the `cp_registry` request/response contract is the CP's
-[integration-playground.md](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/integration-playground.md).
+[integration-playground.md](/control-plane/integration-playground).
 What follows is how the playground *applies* them:
 
 ### `static`
@@ -210,9 +210,9 @@ CP unavailability is never fatal.
 ## Handshake
 
 The 4-message mutual handshake is
-[RFC-AITP-0004](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0004-mutual-handshake.md);
+[RFC-AITP-0004](/spec/mutual-handshake);
 the SDK calls that drive it are in
-[sdk-python.md § Mutual handshake](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#mutual-handshake-rfc-aitp-0004).
+[sdk-python.md § Mutual handshake](/sdks/python#mutual-handshake-rfc-aitp-0004).
 What's playground-specific is the **HTTP plumbing around those calls** —
 which `/admin` and `/aitp` route carries each message:
 
@@ -277,7 +277,7 @@ def verify_capability_tct(self, tct_token, required_grant):
 Four checks before/inside the SDK call:
 
 1. **Local revocation short-circuit** (playground choice). The spec
-   ([RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation.md))
+   ([RFC-AITP-0008](/spec/revocation))
    places the revocation check *after* signature verification so a forged
    jti can't probe the deny set. The demo checks first — every jti in our
    deny set was observed via a prior handshake, so the early-out is safe
@@ -304,8 +304,8 @@ Four checks before/inside the SDK call:
    The signature check against the issuer key derived from `iss` is the
    security gate. The two verification models (holder-receipt vs
    presented-TCT) and what the audience asserts are documented in
-   [sdk-python.md § TCT verification](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#tct-verification-rfc-aitp-0005-9)
-   and [RFC-AITP-0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md).
+   [sdk-python.md § TCT verification](/sdks/python#tct-verification-rfc-aitp-0005-9)
+   and [RFC-AITP-0005](/spec/tct).
    When the wheel exposes `aitp.TctStore`, the same call routes through
    `verify_tct_cached` so repeated verifications hit the cache.
 
@@ -328,8 +328,8 @@ so probe steps can observe it without crashing the run.
 ## Delegation (RFC-AITP-0006)
 
 Delegation semantics — scope narrowing, the `cnf` key binding, redemption —
-are [RFC-AITP-0006](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0006-delegation.md)
-and [sdk-python.md § Delegation](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#delegation-rfc-aitp-0006).
+are [RFC-AITP-0006](/spec/delegation)
+and [sdk-python.md § Delegation](/sdks/python#delegation-rfc-aitp-0006).
 The playground-specific part is the HTTP choreography across two agents:
 
 Single-hop delegation flow:
@@ -386,7 +386,7 @@ Revocation starts local to the issuer, and a signed snapshot can add to it:
 
 By default no revocation list is published over the wire — local deny-set
 fail-closed is all the base demo needs
-([RFC-AITP-0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation.md)
+([RFC-AITP-0008](/spec/revocation)
 defines the signed-list distribution model). The `revoke_tct` step's
 `via_cp: true` mode exercises the **data** path — publish to the Control Plane
 and have an unrelated peer pull `/.well-known/aitp-revocation-list` into its
@@ -403,19 +403,19 @@ These surfaces ship **by default** on the published `aitp-sdk` wheel
 and scenarios degrade cleanly when an older or `--no-default-features`
 wheel lacks one ([capabilities.md](/playground/capabilities)). The SDK mechanics
 for all of these are in
-[sdk-python.md § Additional capabilities](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#additional-capabilities-on-by-default);
+[sdk-python.md § Additional capabilities](/sdks/python#additional-capabilities-on-by-default);
 below is only **what the playground wires up** and **which scenario shows
 it**.
 
 | Surface | Playground wiring (the part that's ours) | Scenario | Spec |
 | --- | --- | --- | --- |
-| **OIDC identity** | The engine mints a per-run **mock OIDC issuer** (`trust/oidc_issuer.py`) and threads its key material through every bootstrap; OIDC agents sign via an `oidc_mint_jwt` callback, pinned-key agents still get a `JwksProvider` to verify OIDC peers. Real deployments swap in an external IdP. | `intra-org/oidc-identity` (+ `p256-suite` template) | [RFC-AITP-0002](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0002-identity.md) · [sdk-python.md](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#oidc-identity-rfc-aitp-0002) |
-| **Key rotation** | `/admin/rotate-keys` regenerates the key + republishes the manifest; `verify_capability_tct`'s **issuer-AID guard** then rejects TCTs minted under the old AID before the SDK is consulted. | `intra-org/key-rotation` | [RFC-AITP-0007](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0007-key-resolution.md) |
-| **TCT renewal** | Holder's `/admin/renew-tct` → issuer's `/admin/process-renewal`; the holder swaps its held TCT in place. | `intra-org/tct-renewal` | [RFC-AITP-0013](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0013-tct-renewal-extension.md) |
-| **TCT verification cache** | When `aitp.TctStore` exists, `verify_capability_tct` routes through `verify_tct_cached`; `tct_cache_stats` exposes hit/miss counters. | `intra-org/tct-cache-perf` | [RFC-AITP-0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md) |
-| **Session bundles** | A coordinator's `/admin/export-session-bundle` packages the TCTs it issued; a verifier's `/admin/verify-session-bundle` returns the `BundleOutcome`. | `intra-org/session-bundle` | [RFC-AITP-0010](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0010-session-trust-bundle.md) |
-| **Multi-hop delegation** | The redeem endpoint swaps `verify_delegation` for `verify_delegation_multihop` when available. | `intra-org/delegation-multihop` | [RFC-AITP-0011](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0011-multihop-delegation.md) |
-| **SPKI pinning** | A pure-SDK `spki_pin_check` step — no agent involved. | `intra-org/spki-pinning` | [sdk-python.md § SPKI cert pinning](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#spki-cert-pinning-hpkp-style-feature-spki-pinning) |
+| **OIDC identity** | The engine mints a per-run **mock OIDC issuer** (`trust/oidc_issuer.py`) and threads its key material through every bootstrap; OIDC agents sign via an `oidc_mint_jwt` callback, pinned-key agents still get a `JwksProvider` to verify OIDC peers. Real deployments swap in an external IdP. | `intra-org/oidc-identity` (+ `p256-suite` template) | [RFC-AITP-0002](/spec/identity) · [sdk-python.md](/sdks/python#oidc-identity-rfc-aitp-0002) |
+| **Key rotation** | `/admin/rotate-keys` regenerates the key + republishes the manifest; `verify_capability_tct`'s **issuer-AID guard** then rejects TCTs minted under the old AID before the SDK is consulted. | `intra-org/key-rotation` | [RFC-AITP-0007](/spec/key-resolution) |
+| **TCT renewal** | Holder's `/admin/renew-tct` → issuer's `/admin/process-renewal`; the holder swaps its held TCT in place. | `intra-org/tct-renewal` | [RFC-AITP-0013](/spec/tct-renewal-extension) |
+| **TCT verification cache** | When `aitp.TctStore` exists, `verify_capability_tct` routes through `verify_tct_cached`; `tct_cache_stats` exposes hit/miss counters. | `intra-org/tct-cache-perf` | [RFC-AITP-0005](/spec/tct) |
+| **Session bundles** | A coordinator's `/admin/export-session-bundle` packages the TCTs it issued; a verifier's `/admin/verify-session-bundle` returns the `BundleOutcome`. | `intra-org/session-bundle` | [RFC-AITP-0010](/spec/session-trust-bundle) |
+| **Multi-hop delegation** | The redeem endpoint swaps `verify_delegation` for `verify_delegation_multihop` when available. | `intra-org/delegation-multihop` | [RFC-AITP-0011](/spec/multihop-delegation) |
+| **SPKI pinning** | A pure-SDK `spki_pin_check` step — no agent involved. | `intra-org/spki-pinning` | [sdk-python.md § SPKI cert pinning](/sdks/python#spki-cert-pinning-hpkp-style-feature-spki-pinning) |
 
 ## What you can ignore (boundary check)
 
