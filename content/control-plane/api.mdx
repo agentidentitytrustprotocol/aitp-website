@@ -18,7 +18,7 @@ spec rather than restate it.
 
 - **Content type:** `application/json` on POST/PATCH.
 - **Request ID:** Every response carries `x-request-id`. Clients may pre-set the header; the CP echoes it.
-- **CORS:** `Access-Control-Allow-Origin` is set to `CORS_ORIGIN` (defaults to `http://localhost:3000`). Applied per-request by the middleware, so it reads from the runtime environment — set it to the UI console's origin. A single origin is supported.
+- **CORS:** `Access-Control-Allow-Origin` is set to `CORS_ORIGIN` (defaults to `http://localhost:3000`). Applied per-request by the proxy, so it reads from the runtime environment — set it to the UI console's origin. A single origin is supported.
 - **Filter key casing:** List filters are accepted in **both** camelCase and snake_case where noted (e.g. `runId` or `run_id`). The playground emits snake_case; UI clients tend to use camelCase. Both resolve to the same column.
 - **Error shape:**
   ```json
@@ -74,6 +74,8 @@ Cached responses are retained for `IDEMPOTENCY_KEY_TTL_DAYS` (default 7). An emp
 |---|---|---|---|
 | GET | `/.well-known/aitp-manifest` | public | CP's own AITP manifest (Ed25519). Rewritten to `/api/well-known/aitp-manifest`. |
 | GET | `/.well-known/aitp-revocation-list` | public | Signed revocation snapshot ([RFC-AITP-0008](https://agentidentitytrustprotocol.io/spec/revocation)). Rewritten to `/api/well-known/aitp-revocation-list`. |
+
+The CP's own manifest has an 86400s TTL and is kept fresh automatically — it rebuilds itself once it nears expiry, no restart required.
 
 ### Registry
 
@@ -229,6 +231,8 @@ This is the **admin action** log (registrations, revocations, webhook changes), 
 ```
 
 `jti` must be a UUID; `reason` ≤ 500 chars; `revokedAt` is optional ISO-8601 (defaults to now). Invalid input → `400 JTI_INVALID` / `400 BODY_INVALID`. Recording a revocation also flips the matching `issuedTcts.revoked` flag and cascades to descendant delegations. The signed list at `/.well-known/aitp-revocation-list` refreshes every `REVOCATION_LIST_TTL_SECS` seconds.
+
+Consumers of the signed list should verify it with the `aitp` SDK's `verifyRevocationList(envelopeJson, expectedIssuerAid)` and branch on the thrown error's `.code` (`signature_invalid`, `issuer_mismatch`, `version_unknown`, `expired`, `malformed`), never on its message text.
 
 ### Webhooks
 

@@ -23,6 +23,16 @@ The CP has its own AITP identity (Ed25519), served at
   ```
 - **`CP_BASE_URL`** — public URL embedded in the CP's own manifest. Set it to
   the externally reachable origin.
+- The CP's own manifest has a **86400s (24h) TTL** (`MANIFEST_TTL_SECS`) and
+  is rebuilt in place once it comes within **3600s** of expiry
+  (`MANIFEST_REBUILD_MARGIN_SECS`), on the next call to `getCpManifestJson()`
+  after that point — a long-lived process never serves a permanently expired
+  manifest and does not need a periodic restart to stay fresh. These are
+  hardcoded constants in `src/lib/identity/cp-agent.ts`, not environment
+  variables — there is nothing to configure here. (This applies only to the
+  CP's own self-published manifest at `/.well-known/aitp-manifest`; it has no
+  bearing on agent-submitted manifests handled by `POST
+  /api/registry/enroll`, a separate code path.)
 
 Rotating `CP_AID_SEED_HEX` rotates the control-plane identity — treat it like a
 signing key, not a config toggle.
@@ -37,10 +47,48 @@ signing key, not a config toggle.
   enrollment tokens. Required. Callers never see it.
 - **`CORS_ORIGIN`** — allowed browser origin (the UI console's origin). Set it
   to a single origin, e.g. `https://console.example.com`. Applied per-request at
-  runtime by the middleware, so it can be changed via the deploy environment
+  runtime by the proxy, so it can be changed via the deploy environment
   without rebuilding the image. Defaults to `http://localhost:3000` if unset.
 
 See [`api.md`](api#authentication) for the full auth matrix.
+
+### Verifying the request gate
+
+Auth, rate limiting, CORS and `x-request-id` injection all live in one file
+(`src/proxy.ts`). Unit tests call its exported function directly, which
+proves the *logic* but cannot prove Next actually **attached** it — a gate file
+in a location Next does not recognise builds green, emits no warning, and leaves
+every `/api/*` route unauthenticated and unthrottled.
+
+```sh
+npm run verify:gate
+```
+
+Builds the app and boots it, then asserts the whole contract over HTTP: 15
+checks covering rejection of unauthenticated requests, acceptance of valid keys,
+all three rate-limit buckets with their `Retry-After` / `X-RateLimit-*` headers,
+probe-path exemption, preflight handling, fail-closed behaviour when `API_KEYS`
+is unset in production, and that the gate is attached with an unchanged matcher.
+
+Two properties make it worth more than a smoke test:
+
+- **It runs with a different `CORS_ORIGIN` than it built with**, and asserts the
+  served header matches the *runtime* value. Asserting mere presence would pass
+  on an artifact that had frozen the value at build time.
+- **It enumerates the public route set from the built manifest, never from
+  `PUBLIC_PATHS`**, and diffs it against `scripts/request-gate-baseline.json`.
+  Re-deriving the expectation from the code under test would be a tautology that
+  reports green while the gate is open.
+
+If a route's classification legitimately changes, review every line of the
+printed diff — each `public` entry is a route reachable with no credentials —
+then regenerate:
+
+```sh
+node scripts/verify-request-gate.mjs --build --update-baseline
+```
+
+CI runs this on every push; a non-zero exit fails the build.
 
 ## Rate limiting
 
