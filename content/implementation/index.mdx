@@ -18,11 +18,11 @@ Rust reference implementation of the **Agent Identity & Trust Protocol (AITP)**.
 > 0.4.0 is a security-hardening + tooling release — SSRF-guarded peer
 > fetches, canonical low-S P-256 signatures, an RSA-2048 floor on the
 > OIDC/DPoP paths, a strict `TctVerifyContext` builder, an offline
-> [`aitp` CLI](crates/aitp-cli/README) (in-repo tool, not yet
+> [`aitp` CLI](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md) (in-repo tool, not yet
 > published to crates.io), an optional `metrics`
 > feature, and operator docs — with the on-the-wire protocol unchanged.
 > See [`docs/conformance.md`](/implementation/conformance) for the per-fixture
-> breakdown and [`CHANGELOG.md`](/implementation/CHANGELOG) for the full history.
+> breakdown and [`CHANGELOG.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/CHANGELOG.md) for the full history.
 
 ## What is AITP?
 
@@ -84,7 +84,7 @@ aitp-rs/
 | `aitp-session-bundle` | ✅ Draft (opt-in) | Session Trust Bundle (RFC-0010): builder + verifier; gated behind `experimental-session-bundle`. |
 | `aitp-transport-http` | ✅ complete   | Manifest fetcher (cache-correct, oversize-capped), JWKS resolver (RFC-0007 ordering), handshake server (AITP error envelopes), revocation endpoint. SSRF `HostGuard` on peer fetches, pluggable `ReplayGuard`, optional `metrics` feature. |
 | `aitp` (facade)       | ✅ complete   | Re-exports + `run_initiator_handshake` + `renew_tct` + `TctStore`; `InitiatorConfig` with `with_http_timeout` / `with_host_guard`. |
-| `aitp-cli`            | ✅ complete   | Offline `aitp` binary: `keygen`, `aid`, `tct inspect`/`verify`, `manifest verify`. Stdin-friendly, non-zero exit on failure. See [`crates/aitp-cli/README.md`](crates/aitp-cli/README). |
+| `aitp-cli`            | ✅ complete   | Offline `aitp` binary: `keygen`, `aid`, `tct inspect`/`verify`, `manifest verify`. Stdin-friendly, non-zero exit on failure. See [`crates/aitp-cli/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md). |
 | `aitp-conformance`    | ✅ Tier A     | Subprocess adapter, fixture loader, runner. |
 | `aitp-rs-adapter`     | ✅ Tier A–D   | All conformance ops, including `verify_handshake_payload` (`id-*` / `mh-*`), `verify_session_bundle` / `issue_session_bundle`, and the `tct-007` PoP-enforcement ops (`authorize_capability_invocation`, `expect_pop_challenge_issued`, `withhold_pop_response`). All 45 required v0.2 `core` fixtures pass; the 7 `draft` fixtures pass under their opt-in features. |
 
@@ -106,19 +106,19 @@ the Cargo workspace — `cargo test --workspace` does not build them.
 
 | RFC | Title | Status | Notes |
 |-----|-------|--------|-------|
-| [0001](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0001-core) | Core wire format | ✅ implemented | JCS canonicalization, envelope, error codes, replay deny list. |
-| [0002](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0002-identity) | Identity binding | ✅ implemented | Pinned-key v1 (5-field domain-prefixed proof) + OIDC with `cnf.jkt`. Trust store enforced. |
-| [0003](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0003-manifest) | Manifest | ✅ implemented | Builder + verifier + HTTP server + cache-correct fetcher. |
-| [0004](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0004-mutual-handshake) | Mutual handshake | ✅ implemented | Four-message exchange + identity-aware grant policy + Manifest-bound TCT expiry + replay protection. |
-| [0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct) | TCT | ✅ implemented | Issuance, verification, downstream PoP, renewal flow. |
-| [0006](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0006-delegation) | Single-hop delegation | ✅ implemented | 11-check verifier; chain length enforced =1 (multihop reserved for RFC-0011). |
-| [0007](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0007-key-resolution) | Key resolution | ✅ implemented | `KeyResolutionPolicy` with cache → pinned → aitp-keys → OIDC ordering and three fail modes. |
-| [0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation) | Revocation | ✅ implemented | Snapshot signing/verification + per-issuer cache + HTTP endpoint + Manifest extension. |
-| [0009](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0009-security) | Security considerations | ✅ honored | Replay window, timestamp tolerance, HTTPS-only fetches, fail-closed defaults; SSRF `HostGuard` (redirect-block + address classification + DNS-rebind-safe pinning), canonical low-S P-256, RSA-2048 floor. See [`docs/transport-hardening.md`](/implementation/transport-hardening). |
-| [0010](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0010-session-trust-bundle) | Session Trust Bundle | ✅ Draft (opt-in) | Gated behind `experimental-session-bundle`. Builder + verifier in `aitp-session-bundle`; conformance fixtures `bundle-*` exercise issuance + verify when the feature is enabled, SKIP otherwise. |
-| [0011](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0011-multihop-delegation) | Multi-hop delegation | ✅ Draft (opt-in) | Default verifier config (`max_delegation_hops=0`) rejects chains with `DELEGATION_MULTIHOP_NOT_SUPPORTED`. Setting `max_delegation_hops > 0` (typically `DEFAULT_MAX_DELEGATION_HOPS=3`) enables chain verification; the conformance runner's `--feature experimental-multihop-delegation` flag exercises the `del-mh-*` fixtures. |
-| [0012](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0012-extensions) | Extensions | ✅ implemented | `ExtensionsMap` with namespace conventions; `ext` claim on JWS artifacts; revocation URL extension wired. |
-| [0013](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0013-tct-renewal-extension) | TCT renewal | ✅ Draft (opt-in) | Shortened in-band renewal (RFC-0004 §8.1) behind the `experimental-renewal` Cargo feature: `renew_tct` facade + holder-PoP renewal exchange. |
+| [0001](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0001-core.md) | Core wire format | ✅ implemented | JCS canonicalization, envelope, error codes, replay deny list. |
+| [0002](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0002-identity.md) | Identity binding | ✅ implemented | Pinned-key v1 (5-field domain-prefixed proof) + OIDC with `cnf.jkt`. Trust store enforced. |
+| [0003](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0003-manifest.md) | Manifest | ✅ implemented | Builder + verifier + HTTP server + cache-correct fetcher. |
+| [0004](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0004-mutual-handshake.md) | Mutual handshake | ✅ implemented | Four-message exchange + identity-aware grant policy + Manifest-bound TCT expiry + replay protection. |
+| [0005](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0005-tct.md) | TCT | ✅ implemented | Issuance, verification, downstream PoP, renewal flow. |
+| [0006](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0006-delegation.md) | Single-hop delegation | ✅ implemented | 11-check verifier; chain length enforced =1 (multihop reserved for RFC-0011). |
+| [0007](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0007-key-resolution.md) | Key resolution | ✅ implemented | `KeyResolutionPolicy` with cache → pinned → aitp-keys → OIDC ordering and three fail modes. |
+| [0008](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0008-revocation.md) | Revocation | ✅ implemented | Snapshot signing/verification + per-issuer cache + HTTP endpoint + Manifest extension. |
+| [0009](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0009-security.md) | Security considerations | ✅ honored | Replay window, timestamp tolerance, HTTPS-only fetches, fail-closed defaults; SSRF `HostGuard` (redirect-block + address classification + DNS-rebind-safe pinning), canonical low-S P-256, RSA-2048 floor. See [`docs/transport-hardening.md`](/implementation/transport-hardening). |
+| [0010](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0010-session-trust-bundle.md) | Session Trust Bundle | ✅ Draft (opt-in) | Gated behind `experimental-session-bundle`. Builder + verifier in `aitp-session-bundle`; conformance fixtures `bundle-*` exercise issuance + verify when the feature is enabled, SKIP otherwise. |
+| [0011](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0011-multihop-delegation.md) | Multi-hop delegation | ✅ Draft (opt-in) | Default verifier config (`max_delegation_hops=0`) rejects chains with `DELEGATION_MULTIHOP_NOT_SUPPORTED`. Setting `max_delegation_hops > 0` (typically `DEFAULT_MAX_DELEGATION_HOPS=3`) enables chain verification; the conformance runner's `--feature experimental-multihop-delegation` flag exercises the `del-mh-*` fixtures. |
+| [0012](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0012-extensions.md) | Extensions | ✅ implemented | `ExtensionsMap` with namespace conventions; `ext` claim on JWS artifacts; revocation URL extension wired. |
+| [0013](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/RFC-AITP-0013-tct-renewal-extension.md) | TCT renewal | ✅ Draft (opt-in) | Shortened in-band renewal (RFC-0004 §8.1) behind the `experimental-renewal` Cargo feature: `renew_tct` facade + holder-PoP renewal exchange. |
 
 ## Known limitations (v0.2)
 
@@ -184,7 +184,7 @@ HTTP **client** ships by default; add the server when you need it
 (`cargo add aitp --features http-server`, or `--features all`).
 The offline `aitp` CLI ships in-repo and is not yet published to
 crates.io — build it with `cargo build -p aitp-cli` (see
-[`crates/aitp-cli/README.md`](crates/aitp-cli/README)).
+[`crates/aitp-cli/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md)).
 
 ## Quick start
 
@@ -196,7 +196,7 @@ make demo
 
 You should see the four-message handshake complete and an `/echo`
 capability invocation succeed. See
-[`examples/two-agents/README.md`](examples/two-agents/README) for the
+[`examples/two-agents/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/examples/two-agents/README.md) for the
 walkthrough.
 
 ## Cross-language interop
@@ -209,7 +209,7 @@ Builds the Python and Node SDKs, then runs a real four-message AITP
 handshake *between the two runtimes* — in both directions — proving the
 two implementations emit wire-compatible envelopes. The Python side runs
 in-process under `pytest`; the Node side runs as a subprocess worker.
-See [`bindings/interop/README.md`](bindings/interop/README) for the
+See [`bindings/interop/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/interop/README.md) for the
 design.
 
 ## Building
@@ -228,7 +228,7 @@ Windows.
 
 ## Documentation
 
-[`docs/README.md`](/implementation/README) is the index and the entry point.
+[`docs/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/README.md) is the index and the entry point.
 Highlights:
 
 - [`docs/architecture.md`](/implementation/architecture) — topology, crate map, and the workspace-split rationale
@@ -236,10 +236,10 @@ Highlights:
 - [`docs/conformance.md`](/implementation/conformance) — NDJSON adapter protocol + the per-fixture matrix
 - [`docs/handshake-transcripts.md`](/implementation/handshake-transcripts) — four-message exchange, byte by byte
 - [`docs/session-bundle.md`](/implementation/session-bundle) · [`docs/multihop-delegation.md`](/implementation/multihop-delegation) · [`docs/tct-renewal.md`](/implementation/tct-renewal) — draft, opt-in extensions
-- [`docs/sdk-python.md`](/implementation/sdk-python) · [`docs/sdk-node.md`](/implementation/sdk-node) — SDK feature guides
+- [`docs/sdk-python.md`](/sdks/python) · [`docs/sdk-node.md`](/sdks/node) — SDK feature guides
 - [`docs/transport-hardening.md`](/implementation/transport-hardening) — HTTP-transport hardening register
 - [`docs/deployment.md`](/implementation/deployment) · [`docs/key-management.md`](/implementation/key-management) — running in production: where state lives, clustering, and signing-key handling
-- [`crates/aitp-cli/README.md`](crates/aitp-cli/README) — the offline `aitp` CLI
+- [`crates/aitp-cli/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md) — the offline `aitp` CLI
 
 The protocol itself is defined **normatively** by the
 [AITP RFCs](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/rfcs);
@@ -250,7 +250,7 @@ docs here point to the relevant RFC section rather than restating it.
 The v0.1 bootstrap and hardening phases, the v0.2 compact-JWS migration
 (portable trust artifacts re-serialized as compact JWS), and the 0.4.0
 security-hardening + tooling release are complete — see
-[`CHANGELOG.md`](/implementation/CHANGELOG) for the history and
+[`CHANGELOG.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/CHANGELOG.md) for the history and
 [`docs/transport-hardening.md`](/implementation/transport-hardening) for the
 transport-layer status register.
 
@@ -269,4 +269,4 @@ Dual-licensed under either of:
 - Apache License, Version 2.0
 - MIT License
 
-at your option. See [`LICENSE-APACHE`](/implementation/LICENSE-APACHE) and [`LICENSE-MIT`](/implementation/LICENSE-MIT).
+at your option. See [`LICENSE-APACHE`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/LICENSE-APACHE) and [`LICENSE-MIT`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/LICENSE-MIT).

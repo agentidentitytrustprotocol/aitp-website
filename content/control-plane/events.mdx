@@ -9,8 +9,8 @@ out to webhooks, and **projects** a subset into derived tables (sessions, TCTs,
 delegations). The CP itself also emits events for registry actions.
 
 This document is the canonical list of event types and how the CP treats each.
-For the wire envelope and ingest limits see [`api.md`](api#events); for the
-tables these events populate see [`data-model.md`](data-model).
+For the wire envelope and ingest limits see [`api.md`](/control-plane/api#events); for the
+tables these events populate see [`data-model.md`](/control-plane/data-model).
 
 ## Envelope
 
@@ -100,11 +100,11 @@ intersection.
 Any other type (including `tct.issued`, `delegation.*`, `handshake.started`, and
 unknown types) is stored and streamable over SSE but **not** delivered to
 webhooks. Deliveries carry `X-AITP-Signature: sha256=<hmac>` over the canonical
-body bytes; see [`api.md`](api#webhooks).
+body bytes; see [`api.md`](/control-plane/api#webhooks).
 
 ## Notes for event producers
 
 - **Fire-and-forget is fine.** Ingest is best-effort and returns `2xx` quickly. Duplicate `id`s are de-duped; unknown types are tolerated.
 - **Use `handshake.complete`** (not `completed`) for the session/TCT/webhook path.
-- **Batch within limits:** ≤ 256 KiB per request, ≤ 500 events per batch, ≤ 64 KiB per event `payload` (see [`api.md`](api#post-apievents-body)).
+- **Batch within limits:** ≤ 256 KiB per request, ≤ 500 events per batch, ≤ 64 KiB per event `payload` (see [`api.md`](/control-plane/api#post-apievents-body)).
 - **Idempotency:** pass an `Idempotency-Key` header to make a retried batch a no-op at the request level, in addition to the per-event `id` de-dupe.

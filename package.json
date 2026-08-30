@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "check-links": "python3 scripts/check-links.py"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.6",

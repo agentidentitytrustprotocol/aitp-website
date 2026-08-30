@@ -108,7 +108,7 @@ spec:
 `identity_type: oidc` builds the manifest with an OIDC identity hint and
 makes the agent mint ID tokens via the per-run mock issuer at handshake
 time — see `intra-org/oidc-identity` and
-[aitp-integration.md](aitp-integration#post-v01-experimental-surfaces).
+[aitp-integration.md](/playground/aitp-integration#post-v01-experimental-surfaces).
 `signing_suite: p256` selects the ECDSA suite instead of Ed25519.
 
 Key behaviors:
@@ -185,9 +185,9 @@ defined there is ignored.
 Step types are a **playground construct** — they orchestrate the protocol,
 they don't define it. Where a step exercises a protocol behavior the table
 cites the RFC by number; those are in the
-[AITP RFC index](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/README),
+[AITP RFC index](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/rfcs/README.md),
 and how the playground drives each one is in
-[aitp-integration.md](aitp-integration).
+[aitp-integration.md](/playground/aitp-integration).
 
 A step's `type` defaults sensibly when omitted:
 - Has `agent` + `capability` → `workflow`.
@@ -429,7 +429,7 @@ review what it wrote.
 4. `dry-run` it, then `POST /runs` and check the event log.
 
 If you need a *new* capability, you'll also touch an agent worker —
-see [agents.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/agents).
+see [agents.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/agents.md).
 
 ## Scenarios in the box
 

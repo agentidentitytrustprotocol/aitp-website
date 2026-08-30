@@ -5,9 +5,9 @@ title: "API Reference"
 
 All routes are JSON over HTTP. Base URL is `CP_BASE_URL` (default `http://localhost:4000`).
 
-For the machine-readable spec see [`../openapi.yaml`](../openapi.yaml). For the
-event payloads these endpoints emit and ingest, see [`events.md`](events);
-for the tables they read and write, see [`data-model.md`](data-model).
+For the machine-readable spec see [`../openapi.yaml`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/openapi.yaml). For the
+event payloads these endpoints emit and ingest, see [`events.md`](/control-plane/events);
+for the tables they read and write, see [`data-model.md`](/control-plane/data-model).
 
 This reference covers the **control-plane API**. Protocol artifacts these
 endpoints carry (manifests, TCTs, the handshake) are defined by the
@@ -48,7 +48,7 @@ HTTP 429
 { "error": "rate limit exceeded", "code": "RATE_LIMITED", "bucket": "<bucket>" }
 ```
 
-with headers `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining: 0`, and `X-RateLimit-Reset` (epoch seconds). Buckets: `enroll-ip` (strict, per-IP, default 5/min), `public-ip` (per-IP, default 60/min), `api-key` (per-key, default 600/min). See [`operations.md`](operations#rate-limiting) for tuning and the `CLIENT_IP_HEADER` / `TRUSTED_PROXY_HOPS` trust model.
+with headers `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining: 0`, and `X-RateLimit-Reset` (epoch seconds). Buckets: `enroll-ip` (strict, per-IP, default 5/min), `public-ip` (per-IP, default 60/min), `api-key` (per-key, default 600/min). See [`operations.md`](/control-plane/operations#rate-limiting) for tuning and the `CLIENT_IP_HEADER` / `TRUSTED_PROXY_HOPS` trust model.
 
 ## Idempotency
 
@@ -170,7 +170,7 @@ Each record:
 | GET | `/api/sessions/:sessionId/export` | API key | Bundle session + projected TCTs + events. `?format=json\|jsonl` |
 | GET | `/api/sessions/:sessionId/replay` | API key | Ordered event stream for one session. Filters: `?since=`, `?until=`, `?limit=`. Malformed `since`/`until` → `400 BAD_REQUEST`. |
 
-Sessions are **projected from events** — the CP does not see handshake traffic. See [`events.md`](events#sessions-projection).
+Sessions are **projected from events** — the CP does not see handshake traffic. See [`events.md`](/control-plane/events#sessions-projection).
 
 ### Events
 
@@ -198,7 +198,7 @@ Accepts either a bare array or `{ "events": [...] }`. Each event:
 }
 ```
 
-`aid_a` / `aid_b` / `session_id` / `run_id` snake_case keys are also accepted (the playground emits snake_case). Unknown event types are stored as-is (never `4xx`); only a known set drives projections and webhooks — see [`events.md`](events).
+`aid_a` / `aid_b` / `session_id` / `run_id` snake_case keys are also accepted (the playground emits snake_case). Unknown event types are stored as-is (never `4xx`); only a known set drives projections and webhooks — see [`events.md`](/control-plane/events).
 
 Response `200`: `{ "ingested": <n> }`.
 
@@ -251,9 +251,9 @@ Consumers of the signed list should verify it with the `aitp` SDK's `verifyRevoc
 { "url": "https://hooks.example.com/aitp", "events": ["tct.revoked"], "secret": "shared-secret", "active": true }
 ```
 
-`url` must be `http(s)` and pass the SSRF guard (private/loopback/link-local ranges and hosts outside `WEBHOOK_URL_ALLOWLIST` are rejected `400 URL_NOT_ALLOWED`). An empty/omitted `events` array means **all deliverable event types**. Only a fixed set of event types is deliverable — see [`events.md`](events#webhook-deliverable-events).
+`url` must be `http(s)` and pass the SSRF guard (private/loopback/link-local ranges and hosts outside `WEBHOOK_URL_ALLOWLIST` are rejected `400 URL_NOT_ALLOWED`). An empty/omitted `events` array means **all deliverable event types**. Only a fixed set of event types is deliverable — see [`events.md`](/control-plane/events#webhook-deliverable-events).
 
-Deliveries are POSTed with headers `X-AITP-Signature: sha256=<hex>` — an HMAC-SHA256 over the canonical body bytes using the webhook's `secret` — plus `X-Aitp-Event` (the event type) and `X-Aitp-Delivery` (the delivery id). Retries follow `WEBHOOK_RETRY_ATTEMPTS` (default 3) with exponential backoff; a circuit breaker trips a repeatedly-failing endpoint open (thresholds configurable via `WEBHOOK_BREAKER_FAILURE_THRESHOLD` / `WEBHOOK_BREAKER_RESET_MS` — see [`operations.md`](operations)).
+Deliveries are POSTed with headers `X-AITP-Signature: sha256=<hex>` — an HMAC-SHA256 over the canonical body bytes using the webhook's `secret` — plus `X-Aitp-Event` (the event type) and `X-Aitp-Delivery` (the delivery id). Retries follow `WEBHOOK_RETRY_ATTEMPTS` (default 3) with exponential backoff; a circuit breaker trips a repeatedly-failing endpoint open (thresholds configurable via `WEBHOOK_BREAKER_FAILURE_THRESHOLD` / `WEBHOOK_BREAKER_RESET_MS` — see [`operations.md`](/control-plane/operations)).
 
 ### Dashboard JSON
 
@@ -309,4 +309,4 @@ The CP **observes** TCTs from agent-reported `tct.issued` and `handshake.complet
 
 ## Lifecycle
 
-- `GET /api/readyz` returns `503` with `{ "ready": false, "reason": "shutting_down" }` once the process has received SIGTERM, so a load balancer can drain the pod before it exits. `GET /api/health` continues to return `200` during the drain window. See [`operations.md`](operations#graceful-shutdown).
+- `GET /api/readyz` returns `503` with `{ "ready": false, "reason": "shutting_down" }` once the process has received SIGTERM, so a load balancer can drain the pod before it exits. `GET /api/health` continues to return `200` during the drain window. See [`operations.md`](/control-plane/operations#graceful-shutdown).

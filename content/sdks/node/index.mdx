@@ -4,12 +4,12 @@ description: "Node.js SDK for the AITP reference implementation"
 ---
 
 
-This page is a feature-by-feature pointer into [`bindings/aitp-node`](../bindings/aitp-node).
+This page is a feature-by-feature pointer into [`bindings/aitp-node`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-node).
 Each section names the RFC, the Cargo feature flag (if any), and a
 ~5-line example. Full TypeScript signatures live in the auto-generated
 `bindings/aitp-node/index.d.ts`.
 
-The Python SDK has a symmetric surface; see [`sdk-python.md`](sdk-python).
+The Python SDK has a symmetric surface; see [`sdk-python.md`](/sdks/python).
 
 > **Current release: 0.4.1** — carries the 0.4.0 crate hardening
 > (canonical low-S P-256 signatures, RSA-2048 floor on the OIDC/DPoP
@@ -77,7 +77,7 @@ const gated = agent.verifyTct(tctJws, 'demo.echo', undefined, ['<revoked-uuid>']
 ```
 
 A TCT also verifies under any stock JOSE library (node `jose`) given only the
-issuer's public key. See [architecture.md](architecture#debugging-a-tct).
+issuer's public key. See [architecture.md](/implementation/architecture#debugging-a-tct).
 
 ### Delegation (RFC-AITP-0006)
 

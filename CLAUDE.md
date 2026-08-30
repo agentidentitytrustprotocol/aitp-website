@@ -9,6 +9,7 @@ npm run dev          # Start dev server (localhost:3000)
 npm run build        # Production build (also runs fumadocs-mdx codegen)
 npm run lint         # ESLint
 npm run typecheck    # TypeScript check (tsc --noEmit)
+npm run check-links  # Fail on any internal link with no page to land on
 
 npx fumadocs-mdx     # Regenerate .source/ directory (codegen for content)
 
@@ -26,17 +27,25 @@ built with **Next.js 15 (App Router)**, **Fumadocs**, and **Tailwind CSS 4**.
 Content originates in 5 source repos (siblings under `../`) and flows through:
 
 1. **`scripts/sync-content.sh`** — copies `.md` files from each source repo,
-   converts to `.mdx`, injects frontmatter, and rewrites `.md` links to route
-   paths. Source repos resolve as a CI checkout (`<name>-repo/`) or a sibling
-   (`../<name>`). Uses a `sedi` wrapper for macOS/Linux portability.
+   converts to `.mdx`, and injects frontmatter. Source repos resolve as a CI
+   checkout (`<name>-repo/`) or a sibling (`../<name>`). As it generates each
+   page it records the page's origin (repo + path) in a manifest for step 3.
 2. **`scripts/escape-mdx.py`** — a code-aware escaper invoked by the sync
    script. It skips fenced code blocks and inline code spans, and in prose
    escapes placeholder tags (`<identifier>`), numeric comparisons (`<43`), and
    bare `{`/`}`. On table rows it escapes `|` inside code spans to `\|` (GFM
    would otherwise treat the pipe as a column delimiter and break the span).
-3. **`source.config.ts`** — defines 8 `defineDocs()` collections.
-4. **`npx fumadocs-mdx`** (or `next build`) — generates `.source/index.ts`.
-5. **`lib/source.ts`** — creates 8 `loader()` instances. Uses the `resolveFiles()`
+3. **`scripts/rewrite-links.py`** — resolves every relative link against the
+   *origin* of the page it appears in (the repo and path it was copied from,
+   recorded in a manifest the sync script builds as it generates pages).
+   Targets that are themselves synced become site routes; everything else
+   becomes a canonical GitHub URL. Origin-awareness is what makes both cases
+   correct — textually, `docs/sdk-python.md` (a page, at `/sdks/python`) and
+   `docs/design/foo.md` (not synced) are indistinguishable.
+   `npm run check-links` guards the result in CI.
+4. **`source.config.ts`** — defines 8 `defineDocs()` collections.
+5. **`npx fumadocs-mdx`** (or `next build`) — generates `.source/index.ts`.
+6. **`lib/source.ts`** — creates 8 `loader()` instances. Uses the `resolveFiles()`
    workaround + `MdxPageData` cast (fumadocs-mdx returns `files` as a function
    but `loader()` expects an array; `body`/`toc` exist at runtime but not in the
    `PageData` type).

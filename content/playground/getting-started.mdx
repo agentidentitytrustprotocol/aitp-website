@@ -13,7 +13,7 @@ Local dev loop, common commands, and a first scenario run.
 That's it — the AITP SDK installs from PyPI (see below), so no Rust
 toolchain is needed for normal development.
 
-> Prefer Docker? Skip to [docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker) — `docker compose -f
+> Prefer Docker? Skip to [docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker.md) — `docker compose -f
 > docker-compose.test.yml up --build --abort-on-container-exit` runs the
 > service plus the e2e suite end-to-end with no host toolchain.
 
@@ -37,8 +37,8 @@ aitp-sdk = { path = "../aitp-rs/bindings/aitp-py" }
 or build the extension into your active venv directly with
 `maturin develop --release` from `../aitp-rs/bindings/aitp-py` — build
 details (features, wheels) are the SDK's own docs:
-[aitp-py README](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/README)
-and [sdk-python.md § Build](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python#build).
+[aitp-py README](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/README.md)
+and [sdk-python.md § Build](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/sdk-python.md#build).
 
 See the comments in `pyproject.toml` for the authoritative story (and
 note the floor pin: `aitp-sdk>=0.7.0` — pre-0.3 wheels speak the
@@ -88,7 +88,7 @@ you set `LLM_PROVIDER=anthropic`). Everything else has a sensible default.
 | `AGENT_BASE_PORT` | `8100` | First port handed to spawned agents |
 | `AGENT_PYTHON` | `python3` | Interpreter for agent subprocesses |
 | `PLAYGROUND_BASE_URL` | `http://localhost:8000` | Where agents POST telemetry |
-| `CP_BASE_URL` | _(empty)_ | Optional Control Plane base URL ([control-plane.md](control-plane)) |
+| `CP_BASE_URL` | _(empty)_ | Optional Control Plane base URL ([control-plane.md](/playground/control-plane)) |
 | `CP_API_KEY` | _(empty)_ | Optional CP bearer |
 | `CP_TIMEOUT_MS` | `5000` | Per-request timeout for CP calls |
 | `CP_AID` | _(empty)_ | The control plane's pinned AID. With `CP_BASE_URL` set and this empty, every revocation snapshot is verified against no expected issuer and **discarded** (logged loudly at start-up) — the agent runs unchecked, not un-configured. Required to actually verify revocation. |
@@ -104,7 +104,7 @@ you set `LLM_PROVIDER=anthropic`). Everything else has a sensible default.
 | `RUN_HISTORY_DB` | _(empty)_ | When set, persist runs + events to this SQLite file so they survive a restart. Empty = in-memory only. |
 | `LOG_LEVEL` | `INFO` | Standard logging level |
 
-See [llm-providers.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/llm-providers) for provider details.
+See [llm-providers.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/llm-providers.md) for provider details.
 
 ## Run the service
 
@@ -150,7 +150,7 @@ curl -s -X POST http://localhost:8000/runs/<uuid>/cancel
 | Endpoint | What |
 | --- | --- |
 | `GET  /healthz` | Liveness |
-| `GET  /capabilities` | Installed `aitp` wheel + which optional features it exposes ([capabilities.md](capabilities)) |
+| `GET  /capabilities` | Installed `aitp` wheel + which optional features it exposes ([capabilities.md](/playground/capabilities)) |
 | `GET  /packs` | List loaded scenario packs |
 | `GET  /scenarios` | List all scenarios with refs |
 | `GET  /scenarios/{pack}/{scenario}@{version}` | Full scenario YAML, parsed (+ template list) |
@@ -160,15 +160,15 @@ curl -s -X POST http://localhost:8000/runs/<uuid>/cancel
 | `GET  /runs/{id}/status` | Just status + event count |
 | `GET  /runs/{id}/events` | SSE event stream (replay + live) |
 | `GET  /runs/{id}/narrate` | Human-readable narration of the event log (text/plain) |
-| `GET  /runs/{id}/cp-audit` | Audit events the CP recorded for this run ([control-plane.md](control-plane)) |
+| `GET  /runs/{id}/cp-audit` | Audit events the CP recorded for this run ([control-plane.md](/playground/control-plane)) |
 | `GET  /runs/{id}/cp-sessions` | Handshake sessions the CP observed for this run |
 | `GET  /runs/{id}/cp-deliveries` | CP webhook deliveries this run has received (requires a prior `cp_subscribe_webhook` step) |
 | `POST /webhooks/cp/{run_id}` | Receiver Control Plane POSTs to during webhook fan-out (HMAC-verified) |
 | `POST /runs/{id}/cancel` | Mark cancelled, then kill agent subprocesses (this order closes the D-16 race: a concurrent dispatch failure that lands after the mark sees `status=cancelled` already, never a stale `running`) |
 | `GET  /agents` | List currently-running agent processes |
-| `GET  /metrics` | Prometheus metrics ([observability.md](observability)) |
+| `GET  /metrics` | Prometheus metrics ([observability.md](/playground/observability)) |
 | `GET  /dashboard` | Single-page trust console (HTML) |
-| `GET  /cp/*` | Read-only Control Plane observability projections ([control-plane.md](control-plane)) |
+| `GET  /cp/*` | Read-only Control Plane observability projections ([control-plane.md](/playground/control-plane)) |
 | `POST /internal/telemetry` | Sink for agents — not for external use |
 
 OpenAPI is at `http://localhost:8000/docs` while the server runs.
@@ -176,7 +176,7 @@ OpenAPI is at `http://localhost:8000/docs` while the server runs.
 The endpoints above all belong to the intra-org `/runs` flow. A separate
 `/hosted-agents` surface spawns a long-lived agent and drives a
 *cross-domain* handshake/invoke against a peer hosted by a different
-playground instance — see [architecture.md](architecture#hosted-agents-srcaitp_playgroundapihostedpy)
+playground instance — see [architecture.md](/playground/architecture#hosted-agents-srcaitp_playgroundapihostedpy)
 for the full route list.
 
 ## Scenario authoring CLI
@@ -208,7 +208,7 @@ uv run python -m aitp_playground.cli conformance                      # RFC fixt
 ```
 
 `trace` drives a run against a running playground and streams the
-narration; `conformance` is covered in [capabilities.md](capabilities).
+narration; `conformance` is covered in [capabilities.md](/playground/capabilities).
 
 ## Common dev loops
 
@@ -255,7 +255,7 @@ How CI maps onto these (`.github/workflows/`):
 - **`notify-website.yml`** — pings the docs site to re-sync when
   `docs/**` or `README.md` change on `main`.
 
-See [testing.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/testing) for the full test layout.
+See [testing.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/testing.md) for the full test layout.
 
 ## Troubleshooting
 

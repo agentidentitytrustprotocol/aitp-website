@@ -8,7 +8,7 @@ description: "RFC-AITP-0007"
 **Document:** RFC-AITP-0007
 **Version:** 0.2.0-draft
 **Status:** Community Standards Track (v0.2 Draft)
-**Depends on:** [RFC-AITP-0001 Core](core), [RFC-AITP-0002 Identity](identity), [RFC-AITP-0003 Agent Manifest](manifest)
+**Depends on:** [RFC-AITP-0001 Core](/spec/core), [RFC-AITP-0002 Identity](/spec/identity), [RFC-AITP-0003 Agent Manifest](/spec/manifest)
 
 ---
 
@@ -66,7 +66,7 @@ Resolution stops at the first success.
 
 ### 2.2 Pinned Keys
 
-Pinned keys are statically configured in the local trust-anchor configuration. See [RFC-AITP-0002 §4](identity#4-trust-anchors). Pinned keys are always preferred over network-fetched keys for the same issuer.
+Pinned keys are statically configured in the local trust-anchor configuration. See [RFC-AITP-0002 §4](/spec/identity#4-trust-anchors). Pinned keys are always preferred over network-fetched keys for the same issuer.
 
 ### 2.3 Well-known Endpoint
 
@@ -125,7 +125,7 @@ When an identity-issuer key resolution flow exhausts all sources, the agent appl
 | `fail_open` | Allow the request. Log a warning. No capability restrictions. |
 | `soft_fail` | Allow the request with grants restricted to a configured safe subset. |
 
-The two modes have different defaults and semantics: `key_resolution.fail_mode` defaults to `fail_closed` and applies when no key for the identity issuer can be obtained, while `revocation_policy.mode` (RFC-AITP-0008 §3.1) applies when a revocation list cannot be fetched. Operators MUST configure them independently. See [`schemas/json/aitp-trust-anchors.schema.json`](../schemas/json/aitp-trust-anchors.schema.json).
+The two modes have different defaults and semantics: `key_resolution.fail_mode` defaults to `fail_closed` and applies when no key for the identity issuer can be obtained, while `revocation_policy.mode` (RFC-AITP-0008 §3.1) applies when a revocation list cannot be fetched. Operators MUST configure them independently. See [`schemas/json/aitp-trust-anchors.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-trust-anchors.schema.json).
 
 ### 3.1 Soft-fail grant restriction
 
@@ -227,7 +227,7 @@ key_resolution:
 
 ## 6. References
 
-- [RFC-AITP-0001 Core](core)
-- [RFC-AITP-0002 Identity](identity)
-- [RFC-AITP-0003 Agent Manifest](manifest)
-- [RFC-AITP-0008 Revocation](revocation)
+- [RFC-AITP-0001 Core](/spec/core)
+- [RFC-AITP-0002 Identity](/spec/identity)
+- [RFC-AITP-0003 Agent Manifest](/spec/manifest)
+- [RFC-AITP-0008 Revocation](/spec/revocation)

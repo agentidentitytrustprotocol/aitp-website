@@ -4,11 +4,11 @@ description: "Python SDK for the AITP reference implementation"
 ---
 
 
-This page is a feature-by-feature pointer into [`bindings/aitp-py`](../bindings/aitp-py).
+This page is a feature-by-feature pointer into [`bindings/aitp-py`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py).
 Each section names the RFC, the Cargo feature flag (if any), and a
-~5-line example. For full method signatures see [`aitp.pyi`](../bindings/aitp-py/aitp.pyi).
+~5-line example. For full method signatures see [`aitp.pyi`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/aitp.pyi).
 
-The Node SDK has a symmetric surface; see [`sdk-node.md`](sdk-node).
+The Node SDK has a symmetric surface; see [`sdk-node.md`](/sdks/node).
 
 > **Current release: 0.4.1** — carries the 0.4.0 crate hardening
 > (canonical low-S P-256 signatures, RSA-2048 floor on the OIDC/DPoP
@@ -75,7 +75,7 @@ ident = agent.verify_tct(tct_jws, "demo.echo", revoked_jtis={"<revoked-uuid>"})
 
 You can also verify a TCT with any stock JOSE library (`pyjwt`, etc.) given
 only the issuer's public key — no AITP stack required. See
-[architecture.md](architecture#debugging-a-tct).
+[architecture.md](/implementation/architecture#debugging-a-tct).
 
 ### Delegation (RFC-AITP-0006)
 

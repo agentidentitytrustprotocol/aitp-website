@@ -145,12 +145,12 @@ pin the jcs-sha256 KAT for the **JCS-profile** types: Manifest,
 revocation snapshot and session bundle. Vectors for all three declare
 `signing_input: "body"`, and `crates/aitp-core/tests/kat.rs` asserts that
 declaration rather than inferring the shape — see
-[testing.md](testing) for why that distinction matters. The v0.1 TCT and delegation JCS
+[testing.md](/implementation/testing) for why that distinction matters. The v0.1 TCT and delegation JCS
 vectors are **retired** — those artifacts are now compact JWS strings
 (RFC-AITP-0001 §5.4.5) verified over their exact transmitted bytes, not
 over a canonicalized form; their known-answer vectors live under
 `known-answer/signed-examples/` instead. See
-[architecture.md](architecture#the-two-signing-profiles) for the
+[architecture.md](/implementation/architecture#the-two-signing-profiles) for the
 profile boundary.
 
 ### Layer 3: Property tests (`tests/jcs_properties.rs`)

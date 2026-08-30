@@ -24,7 +24,7 @@ A coordination surface for AITP agents. It **observes and audits**; it does not 
 - **Not a gateway or proxy.** Handshake traffic is agent-to-agent. The CP never sees handshake payloads.
 - **Not a UI.** No dashboard, no admin pages. Build one separately against the JSON API if you need one.
 
-> This README and [`docs/`](/control-plane/README) describe the **control plane**. The protocol itself (handshake, TCTs, identity, revocation) is normatively defined by the [AITP RFCs](https://agentidentitytrustprotocol.io/spec) and implemented by [`aitp-rs`](https://agentidentitytrustprotocol.io/implementation) — these docs link to the RFCs rather than restate them.
+> This README and [`docs/`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md) describe the **control plane**. The protocol itself (handshake, TCTs, identity, revocation) is normatively defined by the [AITP RFCs](https://agentidentitytrustprotocol.io/spec) and implemented by [`aitp-rs`](https://agentidentitytrustprotocol.io/implementation) — these docs link to the RFCs rather than restate them.
 
 ## Quickstart
 
@@ -83,7 +83,7 @@ rate-limit, retention, and telemetry subsystems behave.
 | `MAX_AUDIT_EVENTS_MEMORY` | no | `500` | In-memory SSE backlog replayed to each new subscriber |
 | `MAX_SSE_CONNECTIONS` | no | `500` | Concurrent `/api/events/stream` cap per process; over-limit returns `503 SSE_CAPACITY` |
 
-**Rate limiting** (in-memory, per-process — see [operations.md](operations#rate-limiting))
+**Rate limiting** (in-memory, per-process — see [operations.md](/control-plane/operations#rate-limiting))
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
@@ -118,7 +118,7 @@ rate-limit, retention, and telemetry subsystems behave.
 
 ## API surface
 
-See [`docs/`](/control-plane/README) for the full documentation set — [`docs/api.md`](/control-plane/api) (prose API reference), [`docs/events.md`](/control-plane/events) (event types & projections), [`docs/data-model.md`](/control-plane/data-model) (Postgres schema), and [`docs/operations.md`](/control-plane/operations) (runbook) — plus [`openapi.yaml`](openapi.yaml) for the machine-readable schema. High-level groups:
+See [`docs/`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md) for the full documentation set — [`docs/api.md`](/control-plane/api) (prose API reference), [`docs/events.md`](/control-plane/events) (event types & projections), [`docs/data-model.md`](/control-plane/data-model) (Postgres schema), and [`docs/operations.md`](/control-plane/operations) (runbook) — plus [`openapi.yaml`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/openapi.yaml) for the machine-readable schema. High-level groups:
 
 - Public discovery: `/api/health`, `/api/readyz`, `/api/metrics`, `/.well-known/aitp-manifest`, `/.well-known/aitp-revocation-list`
 - Registry: `/api/registry/enroll`, `/api/registry/agents`, `/api/registry/agents/:aid`, `/api/registry/agents/:aid/manifest`, `/api/registry/agents/:aid/export`
@@ -227,4 +227,4 @@ The full CI/CD pipeline and a step-by-step Railway deployment guide live in
 
 ## License
 
-See [`LICENSE`](/control-plane/LICENSE).
+See [`LICENSE`](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/LICENSE).

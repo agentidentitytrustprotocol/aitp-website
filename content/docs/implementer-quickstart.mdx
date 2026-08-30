@@ -11,7 +11,7 @@ context so you don't end up reading them backwards.
 
 ## Read in this order
 
-1. **[`docs/architecture.md`](architecture)** — orient first. The
+1. **[`docs/architecture.md`](/docs/architecture)** — orient first. The
    problem, the shape, the flows, where state lives, and the big
    invariant. Skip nothing here; it makes the RFCs ~30 % faster to read.
 
@@ -70,7 +70,7 @@ v0.1 implementations MUST NOT depend on the post-v0.1 drafts.
 RFC-AITP-0001 through 0009 are at **Release Candidate** status
 (`0.1.0-rc.3`): the wire format is stable for v0.1, with changes
 limited to clarifications and conformance material. See
-[governance/RFC-PROCESS.md](../governance/RFC-PROCESS) for the
+[governance/RFC-PROCESS.md](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/governance/RFC-PROCESS.md) for the
 lifecycle.
 
 ---
@@ -96,21 +96,21 @@ lifecycle.
 > alpha.4 PoP nonce bug and the beta.1 Manifest PoP bug in the reference
 > implementation. Add a KAT cross-check for all four code paths against
 > `kat-manifest-pop-001` in
-> [`schemas/conformance/known-answer/jcs-sha256.json`](../schemas/conformance/known-answer/jcs-sha256.json).
+> [`schemas/conformance/known-answer/jcs-sha256.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jcs-sha256.json).
 
 ---
 
 ## Companions
 
-- [`docs/integration-guide.md`](integration-guide) — Python
+- [`docs/integration-guide.md`](/docs/integration-guide) — Python
   pseudocode for verifying a peer-issued TCT (signature, audience,
   expiry, unknown-field rejection).
-- [`docs/operational-guidance.md`](operational-guidance) —
+- [`docs/operational-guidance.md`](/docs/operational-guidance) —
   non-normative patterns for renewal, rotation, cache TTLs, and rate
   limiting.
-- [`docs/threat-model.md`](threat-model) — distilled v0.1 threat
+- [`docs/threat-model.md`](/docs/threat-model) — distilled v0.1 threat
   surface.
-- [`docs/GLOSSARY.md`](GLOSSARY) — terminology quick reference.
+- [`docs/GLOSSARY.md`](/docs/glossary) — terminology quick reference.
 
 ---
 
@@ -118,8 +118,8 @@ lifecycle.
 
 When implementing, verify against:
 
-- [`schemas/json/`](../schemas/json/) — canonical JSON Schemas.
-- [`schemas/conformance/`](../schemas/conformance/) — pass/fail behavioral
+- [`schemas/json/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/json) — canonical JSON Schemas.
+- [`schemas/conformance/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance) — pass/fail behavioral
   fixtures (`env-*`, `man-*`, `mh-*`, `id-*`, `tct-*`, `vch-*`, `rev-*`,
   `del-*`, `del-mh-*`, `bundle-*`).
 
@@ -131,10 +131,10 @@ When implementing, verify against:
   `aitp-conformance-fixture.schema.json`, **and** every artifact embedded in
   a fixture's `input` (session bundle, TCT claims, manifest, …) is
   cross-checked against the schema it claims to satisfy, per the map at
-  [`scripts/fixture-validation-map.json`](../scripts/fixture-validation-map.json)
-  — see [`schemas/conformance/README.md`](../schemas/conformance/README)
+  [`scripts/fixture-validation-map.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/scripts/fixture-validation-map.json)
+  — see [`schemas/conformance/README.md`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/README.md)
   for the contract if you're adding a fixture.
 - `kat-verify` — every pinned known-answer value (canonical bytes, derived
   keys, signatures) recomputes correctly.
 - `doc-coherence` — RFC version claims in `rfcs/README.md` match each RFC's
-  own `Version:` header, and intra-repo `path#anchor` links resolve.
+  own `Version:` header, and intra-repo `path.md#anchor` links resolve.

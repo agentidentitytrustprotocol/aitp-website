@@ -99,7 +99,7 @@ agent's keypair and republishes its manifest — key material lives here,
 not in the admin router) and `GET /admin/tct-cache-stats` (RFC-AITP-0005
 verification-cache counters). Every other `/admin/*` route — including
 `GET /admin/held-tct` and `POST /admin/refresh-revocations` — comes from
-`build_admin_router`. See [agents.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/agents#routes-mounted-per-worker)
+`build_admin_router`. See [agents.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/agents.md#routes-mounted-per-worker)
 for the full per-route breakdown.
 
 ## Components
@@ -135,7 +135,7 @@ large scenarios. The registry is read-only at runtime; set
 - `engine.py` — `ScenarioRunner.run()` is the single entry point. It
   loads the scenario, validates inputs against the inline JSON Schema,
   spawns agents, resolves peers, optionally runs eager pairwise
-  handshakes, then walks `workflow.steps`. See [runner.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/runner).
+  handshakes, then walks `workflow.steps`. See [runner.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/runner.md).
 - `context.py` — `RunContext` accumulates `RunEvent`s; every emit also
   fans out to `RunStore` so SSE subscribers see it live.
 - `store.py` — in-memory pub/sub with per-run event queues. The SSE
@@ -153,7 +153,7 @@ renderable by `narrator`. `metrics.py` is a tiny thread-safe Prometheus
 registry behind `GET /metrics`; `narrator.py` is a pure event→text
 renderer behind `GET /runs/{id}/narrate` and the CLI `trace`. The
 single-file trust console at `GET /dashboard` consumes these plus the JSON
-APIs. See [observability.md](observability).
+APIs. See [observability.md](/playground/observability).
 
 ### Trust (`src/aitp_playground/trust/`)
 `TrustOrchestrator.resolve_peers()` returns `{agent_id: {manifest_url, did}}`
@@ -174,7 +174,7 @@ scenario contains an `identity_type: oidc` agent. The issuer's private seed
 and public JWK ride along in each agent's bootstrap so OIDC agents can mint
 ID tokens and every agent can verify OIDC peers. Real deployments would
 point at an external IdP instead — see
-[aitp-integration.md](aitp-integration#post-v01-experimental-surfaces).
+[aitp-integration.md](/playground/aitp-integration#post-v01-experimental-surfaces).
 
 ### Control Plane client (`src/aitp_playground/cp_client/`)
 `CpClient` is fully optional. When `CP_BASE_URL` is empty:
@@ -196,7 +196,7 @@ Per worker the layout is identical:
 5. The worker registers its `/capabilities/<name>` handlers and starts
    uvicorn. The lifespan emits `AITP_AGENT_READY` once the port is bound.
 
-See [agents.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/agents) for how to add a new worker.
+See [agents.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/agents.md) for how to add a new worker.
 
 ### Hosted agents (`src/aitp_playground/api/hosted.py`)
 A separate router from `/runs`, for a different scenario: a *cross-domain*
@@ -259,10 +259,10 @@ run's event log.
 
 ## Where to read next
 
-- Want to run it? → [getting-started.md](getting-started)
-- Want to add a scenario? → [scenarios.md](scenarios)
-- Want to know how a step actually executes? → [runner.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/runner)
-- Want to understand TCTs and handshake? → [aitp-integration.md](aitp-integration)
-- Want events / metrics / the dashboard? → [observability.md](observability)
-- Wiring the Control Plane? → [control-plane.md](control-plane)
-- Which SDK features are installed? → [capabilities.md](capabilities)
+- Want to run it? → [getting-started.md](/playground/getting-started)
+- Want to add a scenario? → [scenarios.md](/playground/scenarios)
+- Want to know how a step actually executes? → [runner.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/runner.md)
+- Want to understand TCTs and handshake? → [aitp-integration.md](/playground/aitp-integration)
+- Want events / metrics / the dashboard? → [observability.md](/playground/observability)
+- Wiring the Control Plane? → [control-plane.md](/playground/control-plane)
+- Which SDK features are installed? → [capabilities.md](/playground/capabilities)
