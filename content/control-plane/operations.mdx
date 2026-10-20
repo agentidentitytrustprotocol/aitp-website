@@ -84,8 +84,11 @@ What is specific to this service:
   `revocation DB read failed` (warn when serving stale, error when refusing),
   and the shipped-image harness asserts on that text — keep it.
 - **Every entry `jti` is a UUID v4.** aitp ≥ 0.14 verifiers reject the whole
-  list as malformed if any entry is not, and the 0.17 Node signer does not
-  check. `POST /api/revocation/entries` accepts only v4, and if a non-v4 row is
+  list as malformed if any entry is not, and aitp ≥ 0.18 signers refuse to
+  sign one (0.17 signed it). `POST /api/revocation/entries` accepts only a
+  lowercase hyphenated v4 (an uppercase or braced spelling is `400
+  JTI_INVALID`; the `uuid` column would return it lowercase anyway, so this
+  only keeps the webhook and audit `jti` in the published form). If a non-v4 row is
   in `revocation_entries` anyway (written before that check) the producer
   refuses to sign: the endpoint answers `503 REVOCATION_UNAVAILABLE` and logs
   `revocation list signing failed, refusing to publish a list` at error with
@@ -182,8 +185,10 @@ back after cutover breaks the same way in the other direction.
   for why. Still verify an enrollment after any deploy that changes the value:
   boot only proves the secret is *usable*, not that it is the same one your
   already-issued tokens were minted under.
-- **`CORS_ORIGIN`** — allowed browser origin (the UI console's origin). Set it
-  to a single origin, e.g. `https://console.example.com`. Applied per-request at
+- **`CORS_ORIGIN`** — allowed browser origin for `/api/*`. Only a browser app
+  that calls the CP directly needs it; the UI console does not, since its BFF
+  proxy calls the CP server-to-server, where CORS does not apply. Set it to a
+  single origin, e.g. `https://dashboard.example.com`. Applied per-request at
   runtime by the proxy, so it can be changed via the deploy environment
   without rebuilding the image. Defaults to `http://localhost:3000` if unset.
   That "without rebuilding the image" claim is not taken on trust: `verify:image`

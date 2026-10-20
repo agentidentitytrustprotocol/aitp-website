@@ -38,7 +38,7 @@ CP_TIMEOUT_MS=5000                    # per-request timeout (default 5000)
 ```
 
 The CP must speak the same wire protocol: this playground is on `aitp/0.3`
-(aitp-sdk 0.17), so it needs a CP built on aitp >= 0.17. There is no
+(aitp-sdk 0.18; `aitp/0.3` since 0.17), so it needs a CP built on aitp >= 0.17. There is no
 dual-accept: an older CP rejects the agents' Manifests at enrollment.
 
 `CpClient.enabled` is simply `bool(settings.cp_base_url)`. The Dockerized
@@ -131,6 +131,7 @@ disabled. Full field reference is in [scenarios.md](/playground/scenarios#workfl
 | --- | --- | --- |
 | `enroll_with_cp` | Agent self-enrolls ([CP registry API](/control-plane/api#registry)): `POST /api/registry/enroll` to mint a one-time bearer token, then `POST /api/registry/agents` with that token and the **identical manifest bytes** — the CP binds the token to a hash of the exact `/enroll` body (so re-serializing the manifest between the two calls is rejected `401 TOKEN_INVALID`). | `intra-org/external-enrollment` |
 | `revoke_tct` (`via_cp: true`) | Local revoke **plus** `POST /api/revocation/entries`, then the audience pulls the updated list from `/.well-known/aitp-revocation-list`. The CP signs that snapshot and the audience agent **verifies** it against the AID pinned in `CP_AID` before applying any entry — an unverifiable snapshot is discarded, never merged; with no `CP_AID` nothing propagates (fail-closed). The compose stack pins it from the CP's deterministic seed. Where that verification lives in the code: [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest); the rule itself is [RFC-AITP-0008 §1.5](/spec/revocation). | `intra-org/revocation-via-cp` |
+| `revoke_tct` (`via_cp: true`, `local_revoke: false`) | `POST /api/revocation/entries` **only** — no local revoke — then the agents in `refresh_agents` pull and verify the snapshot. The grantor's next redemption rooted in that jti is refused with `source revoked (cp-snapshot)`: the CP entry alone decides it. Skips without a CP. | `intra-org/revocation-cp-only` |
 | `cp_subscribe_webhook` | `POST /api/webhooks` pointing at this run's `/webhooks/cp/{run_id}` receiver; stores the returned secret on the run record for HMAC verification. | `intra-org/webhook-subscription` |
 | `cp_provision_trust_anchor` | `upsert_pinned_key` + optional `upsert_trust_anchor` (OIDC issuer) for an agent under a namespace, then reads them back. | `intra-org/cp-trust-anchor-provisioning` |
 | `cp_delegation_tree` | Flushes the run's events to the CP (awaiting the ingest, so the projection is populated mid-run), then walks a delegator's chain via `GET /api/delegations` (CP's recursive `root_jti` query) to show the chain as the CP observed it. | `intra-org/cp-delegation-tree` |
