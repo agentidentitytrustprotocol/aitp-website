@@ -1,0 +1,54 @@
+---
+title: "The AITP ecosystem — where to go for what"
+---
+
+
+This repository is the **specification**: the RFCs, JSON schemas, registries and conformance suite. It deliberately does not document how to *use* an implementation, how to deploy one, or how to run the surrounding services. Those live in sibling repositories, each of which owns its own docs. This page is the single map; other pages in `docs/` link to specific sibling files where relevant and never restate them.
+
+## Ownership rule
+
+| Concern | Owner |
+|---|---|
+| What is normative (wire formats, verification algorithms, error codes, conformance vectors) | This repo — [`rfcs/`](/spec), [`schemas/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/README.md), [`registries/`](/registry) |
+| How to use or deploy an implementation | The implementation's repo (below) |
+
+If a sibling doc and an RFC ever disagree, **the RFC wins**; please open an issue in the sibling.
+
+## The repositories
+
+All repositories live in the [`agentidentitytrustprotocol`](https://github.com/agentidentitytrustprotocol) GitHub organization; the published site is [agentidentitytrustprotocol.io](https://agentidentitytrustprotocol.io).
+
+| Repository | What it is | Start here |
+|---|---|---|
+| `aitp-rs` | Reference implementation (Rust) with Python and Node bindings and a CLI | [README](/implementation) · [docs index](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/README.md) |
+| `aitp-verifier-py` | Independent Python implementation of the verification core, written from the RFCs and schemas only | [README](https://github.com/agentidentitytrustprotocol/aitp-verifier-py/blob/main/README.md) |
+| `aitp-control-plane` | API-only registry, audit log, revocation list and webhook backend; not in the trust path | [README](/control-plane) · [docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md) |
+| `aitp-playground` | Scenario harness that runs AITP end to end with real LLM agents (a demo, not production) | [README](/playground) · [getting started](/playground/getting-started) |
+| `aitp-ui-console` | Monitoring and control console over the playground and control plane | [README](/console) · [features](/console/features) |
+| `aitp-docs` | Cross-repo knowledge base and a read-only MCP server for agents | [README](https://github.com/agentidentitytrustprotocol/aitp-docs/blob/main/README.md) · [client setup](https://github.com/agentidentitytrustprotocol/aitp-docs/blob/main/docs/clients.md) |
+| `aitp-website` | The public documentation site; it syncs content from this repo and several of the repos above | — |
+
+> A local checkout directory named `aitp-cp` may exist as a symlink to `aitp-control-plane`. Always use `aitp-control-plane` in links.
+
+## "I want to…"
+
+| I want to… | Read |
+|---|---|
+| Understand the protocol's shape | [architecture.md](/docs/architecture), then the [RFC index](/spec) |
+| Implement AITP from scratch | [implementer-quickstart.md](/docs/implementer-quickstart), the RFCs, and the [conformance suite](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/README.md) |
+| Verify a TCT in code | [aitp-rs Python SDK](/sdks/python) · [Node SDK](/sdks/node) · independent reference: [`aitp_verifier/tct.py`](https://github.com/agentidentitytrustprotocol/aitp-verifier-py/blob/main/aitp_verifier/tct.py) and [`jws.py`](https://github.com/agentidentitytrustprotocol/aitp-verifier-py/blob/main/aitp_verifier/jws.py) |
+| See exact handshake bytes | [handshake-transcripts](/implementation/handshake-transcripts) · [JCS notes](/implementation/jcs) |
+| Run the conformance suite against an implementation | [aitp-rs conformance](/implementation/conformance) · [verifier conformance coverage](https://github.com/agentidentitytrustprotocol/aitp-verifier-py/blob/main/README.md#conformance-coverage) |
+| Deploy: replay cache, state, rate limits, hardening | [deployment](/implementation/deployment) · [transport hardening](/implementation/transport-hardening) · spec-level defaults in [operational-guidance.md](/docs/operational-guidance) |
+| Store and rotate keys | [key management](/implementation/key-management#rotation) |
+| Use shortened TCT renewal | [tct-renewal](/implementation/tct-renewal) · normative: RFC-AITP-0004 §8.1 and [RFC-AITP-0013](/spec/tct-renewal-extension) |
+| Use multi-hop delegation or session bundles (opt-in) | [multihop-delegation](/implementation/multihop-delegation) · [session-bundle](/implementation/session-bundle) |
+| Run a registry / audit / revocation service | [control-plane API](/control-plane/api) · [events](/control-plane/events) |
+| Try the protocol end to end | [playground getting started](/playground/getting-started) · [scenarios](/playground/scenarios) |
+| Give an AI agent access to the spec | [aitp-docs client setup](https://github.com/agentidentitytrustprotocol/aitp-docs/blob/main/docs/clients.md) |
+
+## Link convention for this repository
+
+- Links **within** this repository are relative.
+- Links to a sibling repository are full `https://github.com/agentidentitytrustprotocol/<repo>/blob/main/<path>` URLs to a specific file — never `/tree/` URLs, and never the local directory alias `aitp-cp`. The website sync rewrites those to the rendered site page when the file is published there, and they work on GitHub otherwise.
+- Do not hard-code sibling release versions or conformance counts in prose here; link the sibling's README or [`schemas/conformance/README.md`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/README.md), which owns the counts.

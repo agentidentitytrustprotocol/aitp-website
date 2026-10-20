@@ -25,7 +25,7 @@ Everything below is a consequence of that rule.
 |---|---|---|
 | `aitp-core`, `aitp-crypto`, `aitp-tct`, `aitp-delegation`, `aitp-handshake`, `aitp-manifest`, `aitp-envelope` | **No** | Pure functions. Verify/sign take inputs and return outputs; revocation is a caller-supplied callback. Run as many instances as you like — nothing to share. |
 | **Replay deny-list** (envelope `message_id`, DPoP `jti`) | Yes | **Supply a shared [`ReplayGuard`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-transport-http/src/replay_store.rs) or use sticky routing.** This is the one place per-node in-memory state silently weakens a guarantee at scale — see below. |
-| **In-flight handshake sessions** | Yes | **Use sticky routing.** A handshake is a ~tens-of-ms, 4-message conversation holding live state; it is not a shared-store problem. The built-in `max_sessions` + TTL + sweeper bound per-node memory. See below. |
+| **In-flight handshake sessions** | Yes | **Use sticky routing.** A handshake is a ~tens-of-ms, 4-message conversation holding live state; it is not a shared-store problem. The built-in `max_sessions` cap and session TTL, plus an opt-in sweeper, bound per-node memory. See below. |
 | Manifest cache, OIDC discovery cache, JWKS (positive + negative) cache, revocation-snapshot cache | Yes (caches) | **Nothing to do.** All are re-fetchable and TTL-bounded. A cache miss just re-fetches; there is no correctness impact from not sharing them, so they are deliberately in-memory and not pluggable. |
 | Facade `TctStore` (held TCTs) | Yes | Client-side convenience your code already owns — hold/replace it as you see fit. |
 
@@ -81,14 +81,25 @@ token. The right multi-node answer is **sticky routing**: keep a client's
 HELLO and COMMIT on the same node. A handshake completes in tens of
 milliseconds, so affinity for that window is cheap.
 
-Per-node memory is bounded out of the box:
+Per-node memory is bounded, partly out of the box and partly by you:
 
 - `with_max_sessions(n)` — oldest-first eviction once `n` in-flight
-  sessions are held (defends against a HELLO flood); default 10 000.
-- `with_session_ttl(d)` — half-finished sessions are swept after `d`;
-  default 60 s.
-- A background sweeper (default every 30 s) reclaims expired sessions
-  even without traffic.
+  sessions are held (defends against a HELLO flood). Default
+  `DEFAULT_MAX_SESSIONS` = 1 000, the RFC-AITP-0009 §3.1 recommended
+  maximum of concurrent in-flight sessions; raise it for high-volume
+  responders.
+- Session TTL — half-finished sessions expire after `DEFAULT_SESSION_TTL`
+  (60 s). To change it, construct the server with
+  `HandshakeServer::with_session_ttl(...)`, a constructor that takes
+  `new`'s arguments plus the TTL (it is not a builder method).
+- Expired sessions are swept on every HELLO and COMMIT, and by a
+  background sweeper that `router()` starts every
+  `DEFAULT_SESSION_SWEEP_INTERVAL` (30 s), so a burst that goes quiet
+  doesn't hold memory until the next request. Change the period with
+  `.with_session_sweep_interval(d)` or turn it off with
+  `.without_session_sweeper()`. If `router()` runs outside a Tokio
+  runtime, the sweeper starts with the first HELLO. The task holds only a
+  weak reference and exits once the server state is dropped.
 
 There is deliberately **no** shared session store: it would require
 serializing the handshake state machine and buys nothing that sticky
@@ -99,30 +110,78 @@ routing does not, for a conversation this short-lived.
 Independent of clustering, production servers/clients should set:
 
 - **SSRF guard** on peer-derived fetches — `ManifestFetcher` and
-  `JwksFetcher` default to `HostGuard::WarnPrivate`; call
-  `.with_host_guard(HostGuard::strict())` on internet-facing deployments
-  where no legitimate peer/IdP host is on a private network, and
-  `.with_insecure_localhost(false)` to drop the dev exception. (See
+  `JwksFetcher` default to `HostGuard::default()`, i.e.
+  `GuardMode::WarnPrivate` (link-local/metadata always denied, private
+  ranges logged but allowed). Call `.with_host_guard(HostGuard::strict())`
+  (`GuardMode::DenyPrivate`) on internet-facing deployments where no
+  legitimate peer/IdP host is on a private network. (See
   [`transport-hardening.md`](/implementation/transport-hardening).)
+- **Revocation list (`ListRevoked`)** — required of every TCT issuer
+  (RFC-AITP-0005 §11, RFC-AITP-0008 §1.4). `HandshakeServer::router`
+  always serves it at `REVOCATION_LIST_PATH`. Without a
+  `RevocationListProducer` it serves an empty snapshot signed by the
+  server key, re-signed every 60 s and valid for an hour. That snapshot
+  says "nothing is revoked", so once you can revoke, attach a producer
+  backed by your deny list. Advertise the absolute HTTPS URL in the signed
+  Manifest with `ManifestBuilder::revocation_list_uri(origin.join(REVOCATION_LIST_PATH)?)`;
+  the server logs a warning when the key is missing. On the consumer side,
+  `RevocationCache::for_issuer_manifest` polls the advertised URL. A
+  Manifest without the key is still accepted: revocation for that issuer
+  is treated as unavailable and the configured `RevocationFailMode`
+  applies (RFC-AITP-0008 §3).
 - **Strict TCT verification** — build `TctVerifyContext` via
   `::builder(...)` and supply a revocation source and the issuer-Manifest
   expiry cap, rather than the permissive `::now()` / `::permissive_at()`
   shortcuts. The builder refuses to construct until both decisions are
   made (RFC-AITP-0005 §10.4, RFC-AITP-0008).
-- **Rate limiting** — `with_rate_limit(...)` (RFC-AITP-0009 §3.1). Note
-  the rate-limit counters are also per-node; for hard global limits,
-  enforce at the edge/LB.
-- **HTTPS everywhere** — the fetchers reject non-HTTPS peers by default;
-  keep it that way outside local dev.
+- **Rate limiting** — on by default since 0.14, at the RFC-AITP-0009 §3.1
+  recommended 30 requests per source and 10 per sender AID per 60 s
+  (`RateLimitConfig::default()`). The source is the socket peer, so serve
+  the router with `into_make_service_with_connect_info::<SocketAddr>()`;
+  without connect info every request shares one bucket. Behind a reverse
+  proxy, list it in `trusted_proxies` (addresses or CIDRs): only then are
+  `X-Forwarded-For` (rightmost untrusted hop) and `X-Real-IP` read.
+  IPv6 sources are keyed by /64. The per-AID key is the
+  still-unauthenticated envelope `sender`, so it is only ever an extra
+  limit on top of the transport key, as §3.1 requires. The hello/commit
+  handlers apply the §3.1 check order: replay deny list, then rate limit,
+  then timestamp. Counters are per node; for hard global limits, enforce
+  at the edge and call `.without_rate_limit()` only if that edge keys on
+  the transport source. The spec's defaults and check order are in
+  [RFC-AITP-0009 §3.1](/spec/security#31-rate-limiting).
+- **HTTPS everywhere** — the fetchers reject non-HTTPS URLs
+  (RFC-AITP-0003 §4.1). `ManifestFetcher` accepts `http://localhost` /
+  `http://127.0.0.1` only after `.with_insecure_localhost(true)` (and the
+  facade only after `InitiatorConfig::with_insecure_localhost(true)`);
+  the default is `false`. Never enable it in production.
 - **Observability** — the optional `metrics` feature on
   `aitp-transport-http` emits low-cardinality counters via the
   [`metrics`](https://docs.rs/metrics) facade (`aitp_handshake_total`,
   `aitp_replay_rejected_total`, `aitp_sessions_evicted_total`,
-  `aitp_revocation_cache_total`, `aitp_jwks_cache_total`); see
+  `aitp_revocation_cache_total`, `aitp_jwks_cache_total`), and with
+  `pinned-admission` also `aitp_admission_challenge_total`,
+  `aitp_admission_admit_total` and `aitp_admission_nonces_outstanding`; see
   [`examples/observability/`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/examples/observability/README.md) for
   tracing/dashboard wiring.
 - **Key handling** — see [`key-management.md`](/implementation/key-management) for seed
   storage, in-memory hygiene, KMS/HSM reality, and the rotation runbook.
+
+## Known limitations
+
+`HandshakeServer` and fetcher defaults that fall short of the RFCs:
+
+- **The body limit is looser than RFC-AITP-0009 §3.1 recommends.**
+  `DEFAULT_MAX_BODY_BYTES` is 256 KiB (RFC: 64 KB for `MUTUAL_HELLO`).
+  That is a RECOMMENDED value, so this is a weaker default, not a
+  violation.
+- **The renewal replay guard is per process.** With
+  `experimental-renewal`, the renewal route records each `pop_nonce` in an
+  in-memory store; behind several replicas, pass a shared one with
+  `with_renewal_nonce_store` — see [tct-renewal.md](/implementation/tct-renewal#server-handshakeserver).
+- **The SSRF guard warns rather than denies by default.**
+  `HostGuard::default()` is `GuardMode::WarnPrivate`: private ranges are
+  logged but allowed. Internet-facing deployments should call
+  `.with_host_guard(HostGuard::strict())`.
 
 ## Summary
 

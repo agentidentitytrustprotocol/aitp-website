@@ -6,19 +6,19 @@ description: "RFC-AITP-0009"
 # Security & Threat Model
 
 **Document:** RFC-AITP-0009
-**Version:** 0.2.0-draft
-**Status:** Community Standards Track (v0.2 Draft)
+**Version:** 0.3.1-draft
+**Status:** Community Standards Track (Draft)
 **Depends on:** All preceding RFCs.
 
 ---
 
 ## Abstract
 
-This RFC enumerates the threats AITP defends against in the agent-to-agent setting, the defenses, the v0.2 limitations, and the implementation requirements that conformant deployments MUST follow.
+This RFC enumerates the threats AITP defends against in the agent-to-agent setting, the defenses, the v0.3 limitations, and the implementation requirements that conformant deployments MUST follow.
 
 ---
 
-## 1. Threats Addressed in v0.2
+## 1. Threats Addressed in v0.3
 
 ### 1.1 Impersonation
 
@@ -113,13 +113,13 @@ This RFC enumerates the threats AITP defends against in the agent-to-agent setti
 
 **Threat:** An agent's private key is compromised.
 
-**Partial defense (v0.2):**
+**Partial defense (v0.3):**
 - The compromised peer SHOULD revoke all TCTs it issued (add JTIs to its deny list).
 - The compromised peer SHOULD re-publish its Manifest under a new `aid`.
 - Identity-issuer key revocation propagates through the cache TTL or `max_staleness_secs`.
 - Short TTLs limit exposure window.
 
-**Known limitation:** AITP v0.2 does not provide real-time key-compromise detection. Operators MUST establish out-of-band key-rotation procedures.
+**Known limitation:** AITP v0.3 does not provide real-time key-compromise detection. Operators MUST establish out-of-band key-rotation procedures.
 
 ### 1.11 Manifest PoP Bypass
 
@@ -161,15 +161,16 @@ This RFC enumerates the threats AITP defends against in the agent-to-agent setti
 
 ---
 
-## 2. Known Limitations (v0.2)
+## 2. Known Limitations (v0.3)
 
 | Threat | Status |
 |---|---|
 | Sybil attacks | Delegated to identity providers (see [non-goals](#5-non-goals)). |
 | Runtime integrity (is the agent running expected code?) | Requires TEE — reserved in [RFC-AITP-0012](/spec/extensions). |
 | Zero-knowledge compliance proofs | Requires ZK extension — reserved in [RFC-AITP-0012](/spec/extensions). |
-| Real-time key-revocation propagation | Out-of-band in v0.2 (pull-based). |
+| Real-time key-revocation propagation | Out-of-band in v0.3 (pull-based). |
 | Cross-domain trust federation | Future specification. |
+| Signature-string malleability (an Ed25519 JCS-profile signature verifies both untagged and with the `ed25519.` tag) | Documented, not prevented: a signature field is outside its own signing input, so an on-path party can switch the form without breaking the signature. Replay and dedup MUST key on signed content (`message_id`, or the JCS form without the signature), never on raw object bytes ([RFC-AITP-0001 §5.4.3](/spec/core#543-algorithm-tagged-signature-wire-format-jcs-profile-only)). A later revision may make the tag mandatory. |
 | Multi-hop delegation chains | Specified in [RFC-AITP-0011](/spec/multihop-delegation) (Draft; opt-in). |
 | Multi-agent session scaling (O(N²) handshakes) | Specified in [RFC-AITP-0010](/spec/session-trust-bundle) (Draft; opt-in). |
 
@@ -179,26 +180,30 @@ This RFC enumerates the threats AITP defends against in the agent-to-agent setti
 
 Implementations **MUST**:
 
-- Use a cryptographically secure RNG for `message_id`, PoP nonces, and Manifest challenges.
+- Use a cryptographically secure RNG for PoP nonces and Manifest challenges, and for `message_id` and TCT `jti` unless derived per [RFC-AITP-0005 §2.2](/spec/tct#22-identifier-layout-jti).
 - Store private keys in secure storage (HSM, OS keychain, or equivalent).
 - Validate all inputs against the JSON Schema before processing.
 - Enforce expiry (`exp` on compact-JWS artifacts, `expires_at` on JCS-profile objects) with server-side time (not client-provided time).
 - Validate the TLS certificate of any peer host before fetching its Manifest.
 - Log all authentication failures with sufficient context for forensic analysis.
 - Never log private keys, raw compact-JWS tokens (TCT, grant voucher, delegation token), PoP nonces, or other proof material.
+- Apply per-source rate limiting at the handshake endpoint, keyed as §3.1 below specifies.
 
 Implementations **SHOULD**:
 
 - Rotate signing keys on a schedule (recommended: 90 days).
 - Pin TLS certificates of frequently-contacted peers in production.
-- Implement rate limiting on the handshake endpoint per §3.1 below.
 - Re-verify long-lived peer TCTs every 5 minutes by checking the issuer's `ListRevoked` feed.
 
-### 3.1 Rate limiting (RECOMMENDED)
+### 3.1 Rate limiting
 
 A malicious agent can flood the handshake endpoint with syntactically valid envelopes, each forcing a JWK fetch and signature verification. Rate limiting is a defense-in-depth measure for resource exhaustion; protocol-level replay is handled by the deny list (RFC-AITP-0001 §5.5), which runs before the rate-limit check.
 
-Implementations SHOULD enforce per-source-IP and per-AID limits at the handshake endpoint. Recommended defaults:
+Implementations MUST apply per-source rate limiting at the handshake endpoint. This section is the single normative home of that requirement; [RFC-AITP-0004 §11.4](/spec/mutual-handshake#114-denial-of-service-on-handshake-endpoint) cites it.
+
+The source key used before authentication MUST include a transport-level identifier: the peer IP address (taken from a forwarding header only when the immediate hop is a configured trusted proxy) or a TLS client-certificate fingerprint. The `sender.agent_id` of an envelope whose signature has not yet been verified is self-asserted, so a per-AID limit applied at that point MUST NOT be the only limit: on its own it would let an attacker spend another agent's budget by naming its AID. A per-AID limit in addition to the transport-keyed one is RECOMMENDED. Implementations MAY add a global limit as a backstop.
+
+The limits themselves are a deployment concern. Recommended defaults:
 
 | Limit | Default |
 |---|---|
@@ -207,7 +212,7 @@ Implementations SHOULD enforce per-source-IP and per-AID limits at the handshake
 | Maximum concurrent in-flight handshake sessions | 1000 |
 | Maximum `MUTUAL_HELLO` payload size | 64 KB |
 
-Rate limiting is a deployment concern; these defaults are RECOMMENDED, not REQUIRED. Deployments handling high-volume agent swarms SHOULD tune limits to match expected traffic. Responses to rate-limited requests SHOULD use HTTP 429 with no AITP `error` envelope payload (the request never reached the protocol layer).
+Applying rate limiting is REQUIRED; these default values are RECOMMENDED, not REQUIRED. Deployments handling high-volume agent swarms SHOULD tune limits to match expected traffic. Responses to rate-limited requests SHOULD use HTTP 429 with no AITP `error` envelope payload (the request never reached the protocol layer).
 
 The check order at the handshake endpoint **MUST** be:
 
@@ -224,14 +229,16 @@ This ordering is normative: replay-before-rate-limit prevents an attacker from b
 
 ## 4. Cryptographic Agility
 
-AITP v0.2 mandates two signature algorithms: **Ed25519** (RFC 8032; JOSE `EdDSA`) and **ECDSA on P-256 with SHA-256** (JOSE `ES256`). A v0.2 peer MUST be able to verify both, even if it only signs with one (RFC-AITP-0001 §5.4.3); Manifests MAY advertise acceptance via `accepted_signature_algorithms` (v0.2 default `["ed25519", "p256"]`, RFC-AITP-0003 §3.2). The algorithm is determined by the AID key type, not by a negotiated parameter, to prevent algorithm-downgrade attacks.
+AITP v0.3 mandates two signature algorithms: **Ed25519** (RFC 8032; JOSE `EdDSA`) and **ECDSA on P-256 with SHA-256** (JOSE `ES256`). A v0.3 peer MUST be able to verify both, even if it only signs with one (RFC-AITP-0001 §5.4.3); Manifests MAY advertise acceptance via `accepted_signature_algorithms` (v0.3 default `["ed25519", "p256"]`, RFC-AITP-0003 §3.2). The algorithm is determined by the AID key type, not by a negotiated parameter, to prevent algorithm-downgrade attacks.
 
-`version: "aitp/0.2"` artifacts carry their algorithm in one of two ways, depending on the signing profile (RFC-AITP-0001 §5.4):
+`version: "aitp/0.3"` artifacts carry their algorithm in one of two ways, depending on the signing profile (RFC-AITP-0001 §5.4):
 
-- **JCS embedded-signature profile** (envelopes, Manifests, revocation snapshots, handshake payloads): the algorithm-tagged signature grammar `<alg>.<base64url-sig>` of [RFC-AITP-0001 §5.4.3](/spec/core#543-algorithm-tagged-signature-wire-format-jcs-profile-only). The tag MUST match the signing AID's algorithm; the legacy untagged 86-char form remains valid and means Ed25519.
+- **JCS embedded-signature profile** (envelopes, Manifests, revocation snapshots, session trust bundles, handshake payloads): the algorithm-tagged signature grammar `<alg>.<base64url-sig>` of [RFC-AITP-0001 §5.4.3](/spec/core#543-algorithm-tagged-signature-wire-format-jcs-profile-only). The tag MUST match the signing AID's algorithm; the legacy untagged 86-char form remains valid and means Ed25519.
 - **Compact JWS profile** (TCT, grant voucher, delegation token — v0.2 re-serializes these portable trust artifacts as compact JWS, [RFC-AITP-0001 §5.4.5](/spec/core#545-compact-jws-profile-portable-trust-artifacts)): the JOSE protected-header `alg` parameter carries the algorithm, pinned by the same AID-derived rule — the verifier derives the sole acceptable value from the signer's AID before verification and rejects anything else with `TOKEN_ALG_MISMATCH` (§1.12, §1.14).
 
 The two mechanisms are the same rule stated per profile: the AID decides the algorithm, and the algorithm marker is bound to the signed bytes (the §5.4.3 tag is part of the canonical hash input; the JWS `alg` header is inside the signed segments). The v0.1 baseline was Ed25519-only, with the TCT and delegation token still JCS-signed; both the algorithm-tagged grammar and the JWS re-serialization arrive together in `aitp/0.2`.
+
+Under both profiles, what each algorithm signs and which encodings a verifier MUST reject are fixed by [RFC-AITP-0001 §5.4.6](/spec/core#546-signing-primitive-per-algorithm-jcs-profile-and-proofs) (one SHA-256 hash; a P-256 signature uses `e = d`) and [RFC-AITP-0001 §5.4.7](/spec/core#547-verification-strictness) (strict Ed25519: `S < L`, canonical point encodings, no small-order public key, cofactorless equation; P-256: low-S and `R`/`S` range checks, for `ES256` as for JCS `p256.` signatures). Without §5.4.6, two implementations can each be self-consistent and still reject each other's P-256 signatures. Without §5.4.7, they accept different signature sets for the same message (the one optional check, rejecting a small-order Ed25519 `R`, matters only for a signature no conforming signer produces), and a small-order Ed25519 key yields a signature that verifies for any message.
 
 A future major version MAY add algorithms via the RFC process. Removing algorithms requires a major version increment.
 
@@ -239,7 +246,7 @@ A future major version MAY add algorithms via the RFC process. Removing algorith
 
 ## 5. Non-Goals
 
-The following are explicitly out of scope for AITP v0.2:
+The following are explicitly out of scope for AITP v0.3:
 
 | Non-goal | Rationale |
 |---|---|
@@ -247,7 +254,7 @@ The following are explicitly out of scope for AITP v0.2:
 | Global reputation standardization | Domain-specific; reserved as a future extension. |
 | Sybil resistance | Belongs in identity providers, not a trust evaluation protocol. |
 | Identity issuance | AITP is a trust evaluation/expression layer, not an identity system. |
-| Real-time key-revocation push | Adds significant complexity; bounded by `max_staleness_secs` in v0.2. |
+| Real-time key-revocation push | Adds significant complexity; bounded by `max_staleness_secs` in v0.3. |
 | Multi-hop delegation chains | Specified in [RFC-AITP-0011](/spec/multihop-delegation) (Draft; opt-in). |
 | ZK proof verification (core) | Tooling still maturing; reserved as an extension. |
 | TEE attestation (core) | Hardware dependency; reserved as an extension. |
