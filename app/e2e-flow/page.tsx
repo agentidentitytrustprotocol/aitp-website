@@ -183,9 +183,10 @@ export default function E2EFlowPage() {
               not just that it copied an identity from somewhere.
             </p>
             <p>
-              Every signature is over the <strong>JCS-canonicalized</strong>{' '}
-              bytes of the envelope, so both sides hash exactly the same thing,
-              byte for byte.
+              The envelope signature covers the <strong>JCS-canonicalized</strong>{' '}
+              envelope (everything except <code className="font-mono text-[12px]">signature</code>) under a
+              domain tag, so both sides hash exactly the same thing, byte for
+              byte.
             </p>
           </StepCard>
 

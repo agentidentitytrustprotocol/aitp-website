@@ -74,7 +74,7 @@ const buildItems: EcosystemItem[] = [
     icon: <Cpu className="h-6 w-6" />,
     title: 'Implementation',
     description:
-      'aitp-rs — the Rust reference implementation. Core types, JCS, Ed25519 + P-256 envelopes, HTTP transport, full v0.2 conformance.',
+      'aitp-rs — the Rust reference implementation. Core types, JCS, Ed25519 + P-256 envelopes, HTTP transport, full aitp/0.3 conformance.',
     href: '/implementation',
   },
   {
