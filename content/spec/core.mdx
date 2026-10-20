@@ -6,8 +6,8 @@ description: "RFC-AITP-0001"
 # Agent Identity & Trust Protocol (AITP) — Core
 
 **Document:** RFC-AITP-0001
-**Version:** 0.2.5-draft
-**Status:** Community Standards Track (v0.2 Draft)
+**Version:** 0.3.1-draft
+**Status:** Community Standards Track (Draft)
 **Canonical wire format:** JSON
 **Normative transport:** HTTPS (any HTTP/1.1+ runtime)
 **Canonical signing input:** RFC 8785 (JCS) canonical JSON (protocol-internal artifacts); RFC 7515 compact JWS (portable trust artifacts, §5.4.5)
@@ -35,12 +35,16 @@ AITP Core does not define decision theory, reputation models, identity issuance,
 
 This document is Draft Standards Track. Implementations MAY adopt it experimentally. Backward-incompatible changes remain possible until Final status.
 
-The numbering scheme treats `aitp/0.1` as the inaugural A2A protocol. This revision specifies **`aitp/0.2`**, a breaking revision with two delta sets relative to `aitp/0.1`:
+The numbering scheme treats `aitp/0.1` as the inaugural A2A protocol. This revision specifies **`aitp/0.3`**. Relative to `aitp/0.1`, the `aitp/0.2` line introduced two delta sets, which `aitp/0.3` carries unchanged:
 
 1. **Cryptographic agility** — algorithm-tagged AIDs (§5.3), algorithm-tagged JCS signatures (§5.4.3), the JWK-thumbprint `cnf` form (§5.4.4), and mandatory dual-algorithm verification (Ed25519 + P-256).
 2. **Portable trust artifacts as compact JWS** — the TCT, the grant voucher, and the delegation token are re-serialized as compact JWS with explicit typing (§5.4.5; RFC-AITP-0005, RFC-AITP-0006).
 
-`aitp/0.1` verifiers reject unknown `version` values with `UNKNOWN_VERSION`, so the version bump is a clean break: no v0.1 implementation will silently misinterpret a v0.2 artifact.
+`aitp/0.3` adds one breaking delta relative to `aitp/0.2`:
+
+3. **Envelope signing input** — the envelope signature covers the whole envelope minus `signature` under the domain-separated input `sig_input_v2` (§5.4), so `version`, `message_type` and `extensions` are now signed. The `aitp/0.2` input did not cover them.
+
+Every revision boundary is a strict cutover. A verifier rejects any `version` it does not implement with `UNKNOWN_VERSION`: no `aitp/0.1` implementation will silently misinterpret a v0.3 artifact, and an `aitp/0.3` implementation rejects a correctly signed `aitp/0.2` envelope (conformance fixture env-011). See [`VERSIONING.md`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/VERSIONING.md) for the migration notes.
 
 ---
 
@@ -126,13 +130,13 @@ This applies to TCT signature, expiry, audience, grant, and PoP validation. Revo
 
 ## 5. Message Envelope
 
-Every AITP protocol message — `mutual_hello`, `mutual_hello_ack`, `mutual_commit`, `mutual_commit_ack`, `tct`, `pop_challenge`, `pop_response`, `error` — is wrapped in a standard envelope. (`pop_challenge` and `pop_response` are introduced by [RFC-AITP-0005 §6.1](/spec/tct#61-downstream-pop-exchange) and are part of v0.2 conformance for any peer that issues TCTs.)
+Every AITP protocol message — `mutual_hello`, `mutual_hello_ack`, `mutual_commit`, `mutual_commit_ack`, `tct`, `pop_challenge`, `pop_response`, `identity_presentation`, `error` — is wrapped in a standard envelope. (`pop_challenge` and `pop_response` are introduced by [RFC-AITP-0005 §6.1](/spec/tct#61-downstream-pop-exchange) and are part of v0.3 conformance for any peer that issues TCTs. `identity_presentation` is introduced by the OPTIONAL one-way pinned-admission profile of [RFC-AITP-0002 §3.4](/spec/identity#34-one-way-pinned-key-admission-optional-profile-pinned-admission).) The values are listed in [`registries/message-types.md`](/registry/message-types).
 
 ### 5.1 Schema
 
 ```json
 {
-  "version": "aitp/0.2",
+  "version": "aitp/0.3",
   "message_type": "<string>",
   "message_id": "<uuid-v4>",
   "timestamp": 1711900000,
@@ -148,14 +152,14 @@ Every AITP protocol message — `mutual_hello`, `mutual_hello_ack`, `mutual_comm
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `version` | string | REQUIRED | MUST be `"aitp/0.2"` for this RFC. |
-| `message_type` | string | REQUIRED | One of: `mutual_hello`, `mutual_hello_ack`, `mutual_commit`, `mutual_commit_ack`, `tct`, `pop_challenge`, `pop_response`, `error`. |
-| `message_id` | string | REQUIRED | UUID v4, hyphenated lowercase. |
+| `version` | string | REQUIRED | MUST be `"aitp/0.3"` for this RFC. |
+| `message_type` | string | REQUIRED | One of: `mutual_hello`, `mutual_hello_ack`, `mutual_commit`, `mutual_commit_ack`, `tct`, `pop_challenge`, `pop_response`, `identity_presentation`, `error` ([`registries/message-types.md`](/registry/message-types)). |
+| `message_id` | string | REQUIRED | UUID v4, hyphenated lowercase, in the [RFC-AITP-0005 §2.2](/spec/tct#22-identifier-layout-jti) layout (version nibble `4`, variant bits `10`); the remaining bits are random or derived by that section's construction. A receiver MUST reject any other form before signature verification, with `INVALID_ENVELOPE`. |
 | `timestamp` | integer | REQUIRED | Unix timestamp (seconds). |
 | `sender.agent_id` | string | REQUIRED | AID of the sending agent. |
 | `payload` | object | REQUIRED | Message-type-specific content. |
 | `signature` | string | REQUIRED | base64url-encoded envelope signature. |
-| `extensions` | object | OPTIONAL | Extension namespace per §7 and [RFC-AITP-0012](/spec/extensions). Unknown keys *inside* `extensions` MUST be ignored; an unknown member anywhere else in the envelope is rejected with `UNKNOWN_FIELD` (§7). An ordinary member of the envelope: when present it is covered by the envelope signature like any other member (§5.4.1). |
+| `extensions` | object | OPTIONAL | Extension namespace per §7 and [RFC-AITP-0012](/spec/extensions). Unknown keys *inside* `extensions` MUST be ignored; an unknown member anywhere else in the envelope is rejected with `UNKNOWN_FIELD` (§7). An ordinary member of the envelope: when present it is covered by the envelope signature like any other member (§5.4, §5.4.1). |
 
 The canonical schema is the JSON Schema at [`schemas/json/aitp-envelope.schema.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/json/aitp-envelope.schema.json).
 
@@ -167,7 +171,7 @@ An AID is a stable, cryptographic identifier derived from a public key:
 aid:<method>:<identifier>
 ```
 
-v0.2 supported methods:
+v0.3 supported methods:
 
 | Method | Format | Example |
 |---|---|---|
@@ -180,7 +184,7 @@ v0.2 introduces the algorithm-tagged grammar
 v0.1 form `aid:pubkey:<43-char-identifier>` (which implicitly
 means Ed25519). The legacy form is **accepted indefinitely** for
 interop — implementations MUST parse both. New AIDs published
-under the v0.2 profile SHOULD use the algorithm-tagged form. The
+under the v0.3 profile SHOULD use the algorithm-tagged form. The
 legacy form is canonically equivalent to
 `aid:pubkey:ed25519:<same-identifier>` for trust decisions; the
 two forms are NOT byte-equal in canonical signing bytes, so
@@ -207,12 +211,12 @@ An AID is not trusted by itself. It MUST be bound to an identity via an [Identit
 
 ### 5.4 Signature
 
-AITP v0.2 defines **two signing profiles**:
+AITP v0.3 defines **two signing profiles**:
 
 | Profile | Artifacts | Defined in |
 |---|---|---|
-| **JCS embedded-signature profile** — the signature is a field of the JSON object, computed over the object's RFC 8785 canonical form | envelopes, Agent Manifests, revocation snapshots, session trust bundles, handshake payloads | §5.4.1–§5.4.4 |
-| **Compact JWS profile** — the artifact *is* an RFC 7515 compact JWS string; the signature covers the exact transmitted bytes | TCT, grant voucher, delegation token | §5.4.5 |
+| **JCS embedded-signature profile** — the signature is a field of the JSON object, computed over the object's RFC 8785 canonical form (for envelopes, behind the §5.4 domain tag) | envelopes, Agent Manifests, revocation snapshots, session trust bundles, handshake payloads | §5.4.1–§5.4.4, §5.4.6, §5.4.7 |
+| **Compact JWS profile** — the artifact *is* an RFC 7515 compact JWS string; the signature covers the exact transmitted bytes | TCT, grant voucher, delegation token | §5.4.5, §5.4.7 |
 
 The boundary rule is normative:
 
@@ -231,15 +235,30 @@ for those artifacts. Protocol-internal messages keep the JCS profile,
 where both ends are full AITP stacks and canonical-form interop is
 pinned by known-answer tests.
 
-The envelope signature follows the JCS profile. It covers the
-canonical serialization of:
+The envelope signature follows the JCS profile. It covers the whole
+envelope except `signature`, behind a domain tag:
 
 ```
-sig_input = message_id + "|" + timestamp_string + "|" + sender.agent_id + "|" + hex(sha256(payload_canonical_json))
-signature = base64url(sign(sender_private_key, sha256(sig_input)))
+sig_input_v2 = "aitp-envelope-v2" || 0x00 || JCS(envelope_without_signature)
+d            = sha256(sig_input_v2)            ; 32 bytes
+signature    = base64url(SIGN_alg(sender_private_key, d))
 ```
 
-The `payload` object MUST be canonicalized per **[RFC 8785 — JSON Canonicalization Scheme (JCS)](https://datatracker.ietf.org/doc/html/rfc8785)** before hashing. JCS specifies compact JSON with no whitespace, lexicographically sorted keys at every nesting level, ECMAScript-style number formatting, and well-defined Unicode handling. Implementations MUST NOT use ad-hoc canonicalization; cross-implementation signature interop depends on JCS.
+- `envelope_without_signature` is the received envelope object with the `signature` member removed and every other member kept: `version`, `message_type`, `message_id`, `timestamp`, `sender`, `payload`, and `extensions` when present. A verifier re-canonicalizes the object it received (§5.4.1, including the transport-wrapper rule); it MUST NOT drop or rebuild any member before computing the input.
+- `JCS` is RFC 8785 canonicalization, and its output is UTF-8 bytes. The domain tag is the 16 ASCII bytes `aitp-envelope-v2` followed by one `0x00` byte, so `sig_input_v2` is never the bare JCS form any other JCS-profile artifact signs.
+- `SIGN_alg` is the per-algorithm signing primitive defined in §5.4.6; `d` is hashed exactly once. Verification is subject to §5.4.7. The algorithm-tagged signature format (§5.4.3) is unchanged.
+
+Every envelope member other than `signature` is therefore sender-authenticated: changing `version`, `message_type`, `extensions` or any other member after signing invalidates the signature. (The input before issue #87 was the pipe-composed string `message_id|timestamp|sender.agent_id|hex(sha256(JCS(payload)))`, which covered none of `version`, `message_type` or `extensions`. It is retired; a signature over it does not verify over `sig_input_v2`.)
+
+**Envelope check order.** A receiver verifies an envelope's structure and signature in this order, and reports the first failure:
+
+1. **`version`.** If `version` is absent or is not a protocol revision the receiver implements, reject with `UNKNOWN_VERSION` (§7). This runs before schema validation, although the schema's `version` constant would also reject the value.
+2. **Member set and structure.** Validate against the envelope schema. A member outside the schema-defined set and outside `extensions` is rejected with `UNKNOWN_FIELD` (§7); any other structural defect, including an unregistered `message_type`, is rejected with `INVALID_ENVELOPE`.
+3. **Signature.** Compute `sig_input_v2` and verify `signature` under the sender's key (§5.4.3, §5.4.6, §5.4.7). Failure is `INVALID_SIGNATURE`.
+
+These steps sit inside the endpoint order of [RFC-AITP-0009 §3.1](/spec/security#31-rate-limiting): steps 1 and 2 run after its replay, rate-limit, timestamp and Content-Type/body-size steps, and step 3 is its envelope-signature step. A `version` changed after signing is therefore rejected with `UNKNOWN_VERSION`, not `INVALID_SIGNATURE`, when the new value is unknown, and with `INVALID_SIGNATURE` when it is known. Conformance fixtures env-008 (`extensions` changed), env-009 (`message_type` changed) and env-010 (`version` changed) pin this order; env-011 (a correctly signed envelope from the previous revision `aitp/0.2`) pins the strict cutover.
+
+JCS is **[RFC 8785 — JSON Canonicalization Scheme](https://datatracker.ietf.org/doc/html/rfc8785)**. It specifies compact JSON with no whitespace, lexicographically sorted keys at every nesting level, ECMAScript-style number formatting, and well-defined Unicode handling. Implementations MUST NOT use ad-hoc canonicalization; cross-implementation signature interop depends on JCS.
 
 All `signature`, `pop_signature`, `cnf`, `proof`, and the AID identifier component (`aid:<method>:<identifier>`) are encoded as **unpadded base64url** per [RFC 4648 §5](https://datatracker.ietf.org/doc/html/rfc4648#section-5). Implementations MUST NOT emit `=` padding. Implementations SHOULD reject input that contains `=` padding; if they choose to accept it for compatibility with non-conformant senders, they MUST normalize to unpadded form before any signature verification.
 
@@ -263,11 +282,11 @@ verification.
 
 #### 5.4.1 Signing input (JCS profile)
 
-All JCS-profile signatures (envelope, Manifest, revocation snapshot, session bundle, handshake payloads) are computed over the **canonical JSON** form of the object per RFC 8785 (JCS). JSON is the only canonical form for the JCS profile: there is no Protobuf signing input, no CBOR signing input, no transport-specific signing input.
+All JCS-profile signatures (envelope, Manifest, revocation snapshot, session bundle, handshake payloads) are computed over a **canonical JSON** form per RFC 8785 (JCS). For the envelope it is the canonical JSON of the whole envelope minus `signature`, prefixed by the §5.4 domain tag. For the other objects it is the canonical JSON of the object itself. JSON is the only canonical form for the JCS profile: there is no Protobuf signing input, no CBOR signing input, no transport-specific signing input.
 
-The portable trust artifacts (TCT, grant voucher, delegation token) are **not** JCS-signed in v0.2 — they are compact JWS strings (§5.4.5) whose signatures cover the transmitted bytes directly. (In `aitp/0.1` the TCT and delegation token were JCS-signed; that profile is retired for those artifacts.)
+The portable trust artifacts (TCT, grant voucher, delegation token) are **not** JCS-signed in v0.3 — they are compact JWS strings (§5.4.5) whose signatures cover the transmitted bytes directly. (In `aitp/0.1` the TCT and delegation token were JCS-signed; that profile is retired for those artifacts.)
 
-Implementations MAY transport AITP messages over any binary or text frame (raw JSON over HTTP, JSON inside a gRPC `bytes` field, MessagePack, CBOR, etc.) but MUST convert to canonical JSON before signing or verifying. Non-JSON transports are not part of the v0.1 conformance profile; their use is a deployment choice that does not affect the trust contract.
+Implementations MAY transport AITP messages over any binary or text frame (raw JSON over HTTP, JSON inside a gRPC `bytes` field, MessagePack, CBOR, etc.) but MUST convert to canonical JSON before signing or verifying. Non-JSON transports are not part of the v0.3 conformance profile; their use is a deployment choice that does not affect the trust contract.
 
 A signed object that round-trips through any transport MUST produce identical canonical JSON when verified. If a transport adds wrappers or renames fields, the implementation MUST strip them before reconstructing the canonical form.
 
@@ -304,13 +323,13 @@ A signed object that round-trips through any transport MUST produce identical ca
 
 #### 5.4.2 PoP signing input convention
 
-All AITP v0.1 proof-of-possession signing inputs follow a single rule:
+All AITP v0.3 proof-of-possession signing inputs follow a single rule:
 
 ```
 hash_input = sha256(base64url_decode(nonce_or_challenge))
 ```
 
-The hash input is always the raw bytes obtained by base64url-decoding the nonce or challenge — never the ASCII bytes of the encoded form. The rule applies uniformly to:
+The hash input is always the raw bytes obtained by base64url-decoding the nonce or challenge — never the ASCII bytes of the encoded form. The resulting digest is the `d` of §5.4.6 and is signed with that section's per-algorithm primitive: it is not hashed again. The rule applies uniformly to:
 
 - **Manifest PoP** — [RFC-AITP-0003 §3](/spec/manifest) (`proof_of_possession.challenge`, 16 raw bytes / 22 base64url chars).
 - **Handshake round-2 PoP** — [RFC-AITP-0004 §3](/spec/mutual-handshake) (`pop_nonce`, 16 raw bytes / 22 base64url chars).
@@ -319,7 +338,7 @@ The hash input is always the raw bytes obtained by base64url-decoding the nonce 
 
 Implementations MUST hash the decoded bytes; hashing the ASCII form is non-conformant. An implementation that consistently hashes the encoded string will be internally self-consistent but will fail cross-implementation verification — this is the most common interop bug observed in early AITP implementations.
 
-> **Known-answer test.** A pinned PoP signing-input vector (`kat-manifest-pop-001`) lives at [`schemas/conformance/known-answer/jcs-sha256.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jcs-sha256.json). It pins (challenge → decoded bytes → SHA-256 digest → Ed25519 signature with `kat-keypair-001`). Implementations MUST add a KAT cross-check that runs the same input through every PoP code path and confirms each produces the pinned signature byte-for-byte.
+> **Known-answer test.** A pinned PoP signing-input vector (`kat-manifest-pop-001`) lives at [`schemas/conformance/known-answer/jcs-sha256.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jcs-sha256.json). It pins (challenge → decoded bytes → SHA-256 digest → Ed25519 signature with `kat-keypair-001`). Its P-256 sibling, `kat-manifest-pop-002-p256`, pins the same challenge signed with `kat-keypair-005-p256` under §5.4.6 (`e = d`), together with the double-hash value that MUST NOT verify. Implementations MUST add a KAT cross-check that runs the same input through every PoP code path and confirms each produces the pinned signature byte-for-byte.
 
 #### 5.4.3 Algorithm-tagged signature wire format (JCS profile only)
 
@@ -331,7 +350,7 @@ Compact-JWS artifacts
 parameter instead, pinned by the same AID-derived rule.
 
 JCS-profile signature fields MAY carry an algorithm tag prefix in
-v0.2:
+v0.3:
 
 ```
 <base64url-signature> := <86-char-b64url>                  (legacy v0.1, Ed25519 implicit)
@@ -360,6 +379,20 @@ The algorithm tag is part of the canonical bytes that get hashed
 for outer signatures: changing the tag changes the bytes and
 therefore the hash. This binds the algorithm to the signed data.
 
+The signature string itself is **not canonical**. A signature field
+is never part of its own signing input (§5.4, §5.4.1), and an
+Ed25519 signature verifies in both the untagged and the `ed25519.`
+form. A party that relays the object can therefore switch between the
+two forms without invalidating the signature, so the same signed
+object can arrive as two different byte strings. Implementations MUST
+NOT use the raw bytes of a signed object, or a hash of them, as its
+identity for replay detection, deduplication, caching or audit
+correlation. Key on the signed content instead: for an envelope,
+`message_id` (RFC-AITP-0009 §1.2); in general, the JCS form of the
+object without its signature field. Outer signatures are unaffected,
+because they cover the tag as written (above). A later revision may
+make the tag mandatory.
+
 Implementations MUST use one of:
 
 | Algorithm | Identifier | Status |
@@ -367,8 +400,10 @@ Implementations MUST use one of:
 | Ed25519 (RFC 8032) | `ed25519` | REQUIRED |
 | ECDSA on P-256 with SHA-256 | `p256` | REQUIRED |
 
-Both are mandatory in v0.2. A v0.2 peer MUST be able to verify
-both, even if it only signs with one. Manifests MAY advertise
+Both are mandatory in v0.3. A v0.3 peer MUST be able to verify
+both, even if it only signs with one. What `sign` means for each
+algorithm is defined in §5.4.6, and the encodings a verifier MUST
+reject in §5.4.7. Manifests MAY advertise
 which algorithms a peer is willing to accept via the
 `accepted_signature_algorithms` field (RFC-AITP-0003 §3.2).
 
@@ -401,9 +436,9 @@ It is algorithm-agnostic: a P-256 `jkt` is computed from the JWK
 `{"crv":"P-256","kty":"EC","x":"…","y":"…"}` shape, an Ed25519 `jkt`
 from `{"crv":"Ed25519","kty":"OKP","x":"…"}`.
 
-In `aitp/0.2` this is the **only** `cnf` form on the portable trust
+In `aitp/0.3` this is the **only** `cnf` form on the portable trust
 artifacts — the v0.1 raw-public-key `binding.cnf` form does not
-appear in v0.2 tokens. Verifiers derive the *expected* thumbprint
+appear in v0.3 tokens. Verifiers derive the *expected* thumbprint
 from the artifact's subject AID (which encodes the public key, §5.3)
 and MUST reject the token if `cnf.jkt` does not match. This is the
 same convention the OIDC identity binding already uses for its
@@ -411,7 +446,7 @@ same convention the OIDC identity binding already uses for its
 
 Pinned thumbprint vectors for the KAT keypairs live at
 [`schemas/conformance/known-answer/jwk-thumbprints.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jwk-thumbprints.json);
-they are load-bearing for v0.2 `cnf.jkt` verification and
+they are load-bearing for v0.3 `cnf.jkt` verification and
 implementations MUST reproduce them byte-for-byte.
 
 #### 5.4.5 Compact JWS profile (portable trust artifacts)
@@ -468,7 +503,7 @@ algorithm-confusion and `alg: none` attack classes
 (RFC-AITP-0009 §1).
 
 **Version claim (`ver`).** Every AITP JWS payload carries the private
-claim `ver` with the protocol version literal (`"aitp/0.2"` for this
+claim `ver` with the protocol version literal (`"aitp/0.3"` for this
 RFC). Verifiers MUST reject tokens with an unknown `ver` with
 `UNKNOWN_VERSION`. The `typ` values above are version-stable; protocol
 versioning rides exclusively on `ver`.
@@ -491,7 +526,10 @@ objects (§7) — unknown keys *inside* `ext` MUST be ignored.
 
 **ECDSA signature encoding.** `ES256` signatures use the JOSE raw
 `R || S` fixed-length 64-byte encoding (not ASN.1/DER), per
-RFC 7518 §3.4.
+RFC 7518 §3.4. The low-S and range rules of §5.4.7 apply to `ES256`
+signatures as they do to JCS-profile `p256.` signatures; they are
+stricter than RFC 7518, and an off-the-shelf JOSE library MUST be
+wrapped accordingly.
 
 A compact JWS is transport-safe verbatim: it MAY be carried in HTTP
 headers, query-less URLs, or JSON string fields without further
@@ -499,6 +537,39 @@ encoding. When embedded in a JSON document (e.g. a handshake payload
 or session bundle), the artifact is carried as an **opaque JSON
 string** — embedding documents never parse, transform, or re-encode
 it, and outer JCS signatures cover the string verbatim.
+
+#### 5.4.6 Signing primitive per algorithm (JCS profile and proofs)
+
+Every JCS-profile signature and every proof signature hashes its signing input exactly once with SHA-256, producing the 32-byte digest `d`. This covers the envelope (§5.4), Manifest ([RFC-AITP-0003 §6](/spec/manifest)), Manifest PoP, handshake PoP, TCT PoP and renewal PoP (§5.4.2), revocation snapshot ([RFC-AITP-0008 §1.5](/spec/revocation)), session bundle ([RFC-AITP-0010 §3](/spec/session-trust-bundle)) and the pinned-key `proof` ([RFC-AITP-0002 §3.1](/spec/identity)). `SIGN_alg` is then:
+
+- `ed25519`: PureEdDSA ([RFC 8032 §5.1.6](https://datatracker.ietf.org/doc/html/rfc8032#section-5.1.6)) with `d` as the message.
+- `p256`: ECDSA on P-256 ([FIPS 186-5](https://doi.org/10.6028/NIST.FIPS.186-5), section 6.4) with the hash step **already performed**. `d` is used directly as the hashed message (`e = d`) and MUST NOT be hashed again.
+
+Equivalently, the `p256` signature is a standard ECDSA-P256-SHA256 (JOSE `ES256`) signature over the pre-hash input (`sig_input_v2`, `proof_input`, the canonical artifact bytes, or the decoded nonce). A verifier MAY check it either way. Signers MUST use a prehash/digest interface (for example `PrehashSigner`, `Prehashed(SHA256)`, KMS `MessageType=DIGEST`, or `CKM_ECDSA`) and MUST NOT pass `d` to an interface that hashes its input. An implementation that hashes `d` again (`e = SHA-256(d)`) is non-conformant.
+
+The compact JWS profile (§5.4.5) needs no such rule: `EdDSA` signs `ASCII(header || '.' || payload)` directly, and `ES256` hashes that input once as RFC 7518 §3.4 defines.
+
+> **Known-answer test.** `kat-p256-jcs-sign-001` and `kat-manifest-pop-002-p256` in [`schemas/conformance/known-answer/jcs-sha256.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/jcs-sha256.json) pin the single-hash P-256 value for a JCS preimage and a decoded PoP challenge. Each carries the double-hash value (`e = SHA-256(d)`) that MUST NOT verify. The signed examples under `known-answer/signed-examples/` include a P-256 envelope (`kat-envelope-001-p256`), Manifest, revocation snapshot and `ES256` TCT signed by `kat-keypair-005-p256`, each with its double-hash negative, and an Ed25519 envelope with a non-empty `extensions` member (`kat-envelope-002-ed25519`, signed by `kat-keypair-001`). Each envelope example pins its `sig_input_v2` bytes and digest, and carries the retired pipe-input signature as a negative that MUST NOT verify. Implementations MUST reproduce the signatures byte-for-byte when signing with RFC 6979 deterministic `k` and low-S normalization (§5.4.7), and MUST reject every negative.
+
+#### 5.4.7 Verification strictness
+
+**Ed25519.** Verifiers MUST reject:
+
+- a signature whose `S` is not canonical (`S ≥ L`);
+- a public key or `R` that is not a canonical point encoding;
+- a public key of small order (including the identity).
+
+Verifiers MUST use the cofactorless equation `[S]B = R + [k]A`. This is the "strict" verification profile (for example ed25519-dalek `verify_strict`). A verifier MAY additionally reject a small-order `R`, as `verify_strict` does; no conforming signer produces one, so the two behaviours do not diverge on honest input.
+
+**P-256.** Signers MUST emit low-S signatures (`S ≤ n/2`), normalizing `S` to `n − S` when needed, including when the raw signature comes from an external signer such as a KMS or HSM. Verifiers MUST reject `S > n/2`, `R` or `S` equal to 0, and `R` or `S` ≥ `n`, using `INVALID_SIGNATURE` (or the artifact-specific signature code).
+
+**Both profiles.** These rules apply to JCS-profile and compact-JWS signatures alike. For JWS they are stricter than RFC 7518, and an off-the-shelf JOSE library MUST be wrapped accordingly.
+
+**External signers.** When the private key is held by a KMS, HSM or remote signer, the implementation that assembles the AITP artifact is the "signer" for the purposes of this section. It MUST normalize `S` and SHOULD verify the assembled signature against the AID's key before emitting it. A KMS returning a DER-encoded signature MUST be converted to the fixed 64-byte `r || s` form before tagging.
+
+**Scope.** These rules apply to signatures over AITP-defined signing inputs: envelopes, the AITP-minted compact-JWS artifacts (TCT, grant voucher, delegation token), pinned-key identity proofs and Manifest PoP, together with every other signature §5.4.6 lists. A JOSE object whose format is defined outside AITP — an identity provider's OIDC ID token ([RFC-AITP-0002 §2](/spec/identity#2-oidc-identity-type)) or an [RFC 9449](https://datatracker.ietf.org/doc/html/rfc9449) DPoP proof — is verified per RFC 7515 and RFC 7518; a verifier MUST NOT reject it solely for a high-S `ES256` signature, because its issuer is not bound by this profile. Such an object is therefore malleable: replay and deduplication caches for it MUST key on its bound `nonce` or `jti`, never on the raw token bytes.
+
+> **Known-answer test.** [`schemas/conformance/known-answer/signature-strictness.json`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/signature-strictness.json) pins one vector per rejection reason: `sig-001` (Ed25519 small-order public key), `sig-002` (Ed25519 `S ≥ L`) and `sig-003` (P-256 high-S). Each is accepted by a lax verifier and MUST be rejected. Conformance fixture `tct-017-es256-high-s-rejected` carries a committed high-S `ES256` TCT that a stock JOSE verifier accepts and an AITP verifier MUST reject with `TCT_SIGNATURE_INVALID`.
 
 ### 5.5 Replay Protection
 
@@ -560,7 +631,7 @@ Mode-specific error codes are defined in their respective RFCs (mutual handshake
 
 Capability negotiation is part of the Mutual Handshake. Discovery-time screening (`offered_capabilities` and `required_peer_capabilities` on the Manifest) is normative in [RFC-AITP-0003 §3](/spec/manifest); handshake-time grant intersection is normative in [RFC-AITP-0004 §4](/spec/mutual-handshake). Capability string format and the registry of well-known prefixes are in [`registries/capabilities.md`](/registry/capabilities).
 
-There is no separate "protocol capability" object in v0.1. Implementations either support the full mandatory protocol surface (envelope + manifest + mutual handshake + TCT) or they are not conformant.
+There is no separate "protocol capability" object in v0.3. Implementations either support the full mandatory protocol surface (envelope + manifest + mutual handshake + TCT) or they are not conformant.
 
 ---
 
@@ -568,44 +639,50 @@ There is no separate "protocol capability" object in v0.1. Implementations eithe
 
 AITP uses a layered compatibility model:
 
-- **Protocol version** governs envelope and base behavior (`version` field on JCS-profile objects, `ver` claim on JWS-profile artifacts; `aitp/0.2` for this RFC).
-- **JSON Schema namespace** governs canonical schema compatibility (the `$id` URIs under `https://aitp.dev/schema/v0.2/`).
+- **Protocol version** governs envelope and base behavior (`version` field on JCS-profile objects, `ver` claim on JWS-profile artifacts; `aitp/0.3` for this RFC).
+- **JSON Schema namespace** governs canonical schema compatibility (the `$id` URIs under `https://aitp.dev/schema/v0.3/`).
 - **TCT version** governs the canonical token contract (the `ver` claim).
 - **Manifest version** governs the agent self-description format.
 
-Major protocol version mismatches are not compatible. Minor versions are expected to be backward compatible. Verifiers receiving an unknown `version` MUST respond with `UNKNOWN_VERSION`.
+Major protocol version mismatches are not compatible. Minor versions are expected to be backward compatible. Verifiers receiving an unknown `version` MUST respond with `UNKNOWN_VERSION`. On an envelope the `version` check comes first, before the member-set check (`UNKNOWN_FIELD`) and the signature check (`INVALID_SIGNATURE`); §5.4 gives the normative order.
 
 Unknown JSON fields outside explicit `extensions` namespaces MUST be rejected, with the error code `UNKNOWN_FIELD` ([registry](/registry/error-codes)). Signed AITP objects depend on canonical JCS representation; silently ignoring unknown fields would create signature ambiguity across implementations (one peer hashes the field in, another hashes it out, and the same wire bytes verify differently). Forward compatibility is provided exclusively through explicit `extensions` objects (see [RFC-AITP-0012](/spec/extensions)) — every signed object reserves an `extensions` slot, and unknown keys *inside* `extensions` MUST be ignored, never rejected. The rule is asymmetric by design: an unknown member *beside* the namespace ⇒ reject with `UNKNOWN_FIELD`; an unknown key *inside* it ⇒ ignore. On the compact-JWS artifacts the namespace is the `ext` claim (§5.4.5; RFC-AITP-0005 §2) and the unknown member is an unknown *claim* in the decoded payload — same rule, same code.
 
-This check is not only stated here: each artifact RFC carries it as an explicit step in its own verification algorithm, positioned before the cryptographic steps so a malformed object is rejected before any signature verification is spent on it — RFC-AITP-0003 §5 step 2 (Manifest), RFC-AITP-0004 §5 step 2 of each of the four payload procedures (handshake), RFC-AITP-0005 §7.2 step 1 (TCT claims), RFC-AITP-0008 §1.5 (revocation snapshot), and RFC-AITP-0010 §5 (session bundle).
+This check is not only stated here: each artifact RFC carries it as an explicit step in its own verification algorithm, positioned before the cryptographic steps so a malformed object is rejected before any signature verification is spent on it — the envelope check order in §5.4, RFC-AITP-0003 §5 step 2 (Manifest), RFC-AITP-0004 §5 step 2 of each of the four payload procedures (handshake), RFC-AITP-0005 §7.2 step 1 (TCT claims), RFC-AITP-0008 §1.5 (revocation snapshot), and RFC-AITP-0010 §5 (session bundle).
 
 ---
 
 ## 8. Transport
 
-The normative transport for AITP v0.1 is **HTTPS carrying canonical JSON**. The endpoints normatively required of every conformant peer:
+The normative transport for AITP v0.3 is **HTTPS carrying canonical JSON**. The endpoints normatively required of every conformant peer:
 
 | Endpoint | Method | Purpose | Defined in |
 |---|---|---|---|
 | `/.well-known/aitp-manifest` | GET | Fetch this peer's signed Manifest | [RFC-AITP-0003 §4](/spec/manifest) |
 | `<handshake_endpoint>` | POST | Receive `mutual_hello` / `mutual_commit` envelopes | [RFC-AITP-0004](/spec/mutual-handshake) |
+| `<revocation_list_uri>` (`ListRevoked`) | GET | Fetch this peer's signed revocation snapshot for the TCTs it issued | [RFC-AITP-0005 §11](/spec/tct#11-peer-issued-tct-verification-api), [RFC-AITP-0008 §1.4–§1.5](/spec/revocation#14-distribution) |
 
-> **Other endpoints are deployment-defined in v0.1.** TCT verification, delegation verification, and revocation list publication (RFC-AITP-0005 §10, RFC-AITP-0006, RFC-AITP-0008) are operational surfaces. Peers that expose them MAY advertise their URLs in the Manifest's `extensions` namespace ([RFC-AITP-0012](/spec/extensions)); v0.1 does not normatively pin those advertisement fields.
+The `ListRevoked` row binds every peer that issues TCTs; a peer completing the Mutual Handshake issues one (RFC-AITP-0004), so in practice it binds every conformant peer. Its URL is advertised in the Manifest's `extensions` under the registered key `rfc-aitp-0008.revocation_list_uri` ([extension-key registry](/registry/extension-keys)), just as `handshake_endpoint` is advertised in the Manifest body. The obligation is on the issuer: a verifier MUST NOT reject a Manifest solely because that key is absent, and treats its absence as revocation status being unavailable for that issuer, handled by its configured revocation policy (RFC-AITP-0008 §3).
 
-Request and response bodies are AITP envelopes serialized as JSON with `Content-Type: application/json`. The well-known Manifest endpoint and `handshake_endpoint` (advertised in the Manifest) are the only paths v0.1 normatively requires.
+> **Other endpoints are deployment-defined in v0.3.** TCT verification (`Verify`), the administrative `Revoke` operation (RFC-AITP-0005 §11), and delegation verification (RFC-AITP-0006) are OPTIONAL operational surfaces. Peers that expose them MAY advertise their URLs in the Manifest's `extensions` namespace ([RFC-AITP-0012](/spec/extensions)) using the keys registered in [`registries/extension-keys.md`](/registry/extension-keys); v0.3 does not require them. Concrete URL paths are deployment-defined for every endpoint except the well-known Manifest path, including the `ListRevoked` URL itself, which is located through its Manifest advertisement.
 
-Implementations MAY transport AITP messages over other framings (binary RPC, message bus, etc.) but MUST convert to canonical JSON before signing or verifying (§5.4.1). v0.1 does not standardize any non-JSON binding.
+Request and response bodies are AITP envelopes serialized as JSON with `Content-Type: application/json`; the `ListRevoked` response body is the signed revocation snapshot of RFC-AITP-0008 §1.5. The well-known Manifest endpoint, `handshake_endpoint`, and the advertised `ListRevoked` URL (the last for TCT issuers) are the only paths v0.3 normatively requires.
+
+Implementations MAY transport AITP messages over other framings (binary RPC, message bus, etc.) but MUST convert to canonical JSON before signing or verifying (§5.4.1). v0.3 does not standardize any non-JSON binding.
 
 ---
 
 ## 9. Registry Hooks
 
-AITP maintains four registries under [`registries/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/registries):
+AITP maintains seven registries under [`registries/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/registries), indexed in [`registries/README.md`](/registry):
 
 - **identity-types** — registered values for `IdentityDescriptor.type`
 - **capabilities** — well-known capability strings
 - **error-codes** — protocol-level error codes (envelope, manifest, handshake, delegation)
+- **extension-keys** — keys used inside `extensions` / `ext` namespaces by AITP-defined extensions
+- **jti-domain-tags** — domain tags for derived `jti` / `message_id` values ([RFC-AITP-0005 §2.2](/spec/tct#22-identifier-layout-jti))
 - **media-types** — content types used in transport bindings
+- **message-types** — registered values for the envelope `message_type` (§5.2)
 
 New entries are added via the [RFC process](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/governance/RFC-PROCESS.md). Experimental identifiers SHOULD use reverse-domain notation.
 
@@ -613,23 +690,23 @@ New entries are added via the [RFC process](https://github.com/agentidentitytrus
 
 ## 10. Conformance
 
-A conformant AITP v0.2 implementation MUST:
+A conformant AITP v0.3 implementation MUST:
 
-1. Use the JSON wire format (§5.1), the JCS signing input for protocol-internal artifacts (§5.4.1), and the compact JWS profile for portable trust artifacts (§5.4.5). Non-JSON framings (binary RPC, CBOR, MessagePack, etc.) are not part of v0.2 conformance; using them is a deployment choice that does not satisfy v0.2 conformance on its own.
+1. Use the JSON wire format (§5.1), the JCS signing input for protocol-internal artifacts (§5.4.1), and the compact JWS profile for portable trust artifacts (§5.4.5). Non-JSON framings (binary RPC, CBOR, MessagePack, etc.) are not part of v0.3 conformance; using them is a deployment choice that does not satisfy v0.3 conformance on its own.
 2. Parse and verify the envelope as defined in §5.
 3. Verify identity bindings as defined in [RFC-AITP-0002](/spec/identity).
 4. Publish and consume Agent Manifests as defined in [RFC-AITP-0003](/spec/manifest).
 5. Implement the Mutual Handshake defined in [RFC-AITP-0004](/spec/mutual-handshake).
-6. Issue and verify peer-issued TCTs and grant vouchers as defined in [RFC-AITP-0005](/spec/tct), enforcing the §5.4.5 algorithm-pinning and explicit-typing rules.
+6. Issue and verify peer-issued TCTs and grant vouchers as defined in [RFC-AITP-0005](/spec/tct), enforcing the §5.4.5 algorithm-pinning and explicit-typing rules, and serve the signed `ListRevoked` revocation snapshot for the TCTs it issues at the URL its Manifest advertises under `rfc-aitp-0008.revocation_list_uri` (§8; RFC-AITP-0005 §11; RFC-AITP-0008 §1.4).
 7. Reject expired, mismatched-audience, or revoked TCTs, and reject tokens failing `alg`/`typ` enforcement with `TOKEN_ALG_MISMATCH` / `TOKEN_TYP_MISMATCH`.
-8. Reproduce the canonical-bytes and digest pins in [`schemas/conformance/known-answer/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance/known-answer) byte-for-byte. The v0.2-mandatory KATs are: the JCS signing-input vectors for the JCS-profile artifacts (`kat-manifest-001`, `kat-revocation-001`; each pins the inner artifact body per §5.4.1), the unified PoP signing-input vector `kat-manifest-pop-001`, the compact-JWS vectors under `known-answer/signed-examples/` (TCT, grant voucher, delegation), and the JCS-profile signed examples there (Manifest, revocation snapshot) — verified as committed, without re-minting (RFC-AITP-0003 §6.1, RFC-AITP-0008 §1.5). Implementations MUST run `kat-manifest-pop-001` through every PoP code path (Manifest PoP, handshake PoP, downstream TCT PoP, pinned-key identity proof) and confirm each produces the pinned signature — see §5.4.2. Implementations that opt into the post-v0.2 draft RFCs MUST additionally reproduce the multi-hop chain vectors (RFC-AITP-0011) and the session-bundle vector (RFC-AITP-0010); core-only implementations MAY skip those.
-9. Pass the conformance fixtures in [`schemas/conformance/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance). The v0.2 fixture surface is the `env-*`, `man-*`, `mh-*`, `id-*`, `tct-*`, `vch-*`, `del-*`, and `rev-*` IDs. The `del-mh-*` and `bundle-*` fixtures are draft opt-in (RFC-AITP-0010 / RFC-AITP-0011) — core implementations are expected to reject `del-mh-*` tokens with `DELEGATION_MULTIHOP_NOT_SUPPORTED` and to skip the `bundle-*` operations (`SKIP` rather than `FAIL`).
+8. Reproduce the canonical-bytes and digest pins in [`schemas/conformance/known-answer/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance/known-answer) byte-for-byte. The v0.3-mandatory KATs are: the JCS signing-input vectors for the JCS-profile artifacts (`kat-manifest-001`, `kat-revocation-001`; each pins the inner artifact body per §5.4.1), the unified PoP signing-input vector `kat-manifest-pop-001`, the compact-JWS vectors under `known-answer/signed-examples/` (TCT, grant voucher, delegation), and the JCS-profile signed examples there (Manifest, revocation snapshot) — verified as committed, without re-minting (RFC-AITP-0003 §6.1, RFC-AITP-0008 §1.5). Implementations MUST run `kat-manifest-pop-001` through every PoP code path (Manifest PoP, handshake PoP, downstream TCT PoP, pinned-key identity proof) and confirm each produces the pinned signature — see §5.4.2. Implementations that opt into the post-v0.3 draft RFCs MUST additionally reproduce the multi-hop chain vectors (RFC-AITP-0011) and the session-bundle vector (RFC-AITP-0010); core-only implementations MAY skip those.
+9. Pass the conformance fixtures in [`schemas/conformance/`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance). The v0.3 fixture surface is the `env-*`, `man-*`, `mh-*`, `id-*`, `tct-*`, `vch-*`, `del-*`, and `rev-*` IDs. The `del-mh-*` and `bundle-*` fixtures are draft opt-in (RFC-AITP-0010 / RFC-AITP-0011) — core implementations are expected to reject `del-mh-*` tokens with `DELEGATION_MULTIHOP_NOT_SUPPORTED` and to skip the `bundle-*` operations (`SKIP` rather than `FAIL`). Fixtures gated on an OPTIONAL profile or role carry `status: extension` and are outside this mandatory set: the `id-*` fixtures of the pinned-admission profile ([RFC-AITP-0002 §3.4](/spec/identity#34-one-way-pinned-key-admission-optional-profile-pinned-admission), `feature: aitp-pinned-admission`) and the `tct-*` fixtures of relying-party attestation verification ([RFC-AITP-0005 §5.3](/spec/tct#53-self-issued-attestation-tcts), `feature: aitp-self-attestation`). An implementation that claims "AITP v0.3 pinned-admission" conformance (RFC-AITP-0002 §3.4) MUST pass the fixtures gated on `aitp-pinned-admission`, and one that claims "AITP v0.3 self-attestation" conformance (RFC-AITP-0005 §5.3) MUST pass the fixtures gated on `aitp-self-attestation`.
 
 ---
 
 ## 11. Security Considerations
 
-See [RFC-AITP-0009 Security](/spec/security) for the full threat model. Implementations MUST use a cryptographically secure RNG for `message_id` and nonces, store private keys in secure storage, and validate all inputs against the JSON Schema before processing.
+See [RFC-AITP-0009 Security](/spec/security) for the full threat model. Implementations MUST use a cryptographically secure RNG for nonces, and for `message_id` unless derived per [RFC-AITP-0005 §2.2](/spec/tct#22-identifier-layout-jti), store private keys in secure storage, and validate all inputs against the JSON Schema before processing.
 
 ---
 

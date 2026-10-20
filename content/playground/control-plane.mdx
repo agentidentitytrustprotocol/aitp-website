@@ -40,7 +40,7 @@ CP_TIMEOUT_MS=5000                    # per-request timeout (default 5000)
 `CpClient.enabled` is simply `bool(settings.cp_base_url)`. The Dockerized
 e2e suite (`docker-compose.test.yml`) brings up a Postgres + CP + playground
 stack and points `CP_BASE_URL` at the in-network CP container — see
-[docker.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/internal_docs/docker.md).
+[docker.md](/playground/docker).
 
 ## Two clients, one CP
 
@@ -53,8 +53,8 @@ straight:
    projections surfaced under `/cp/*`.
 2. **Agent workers** (`agents/base/agent_admin.py`) — an agent talks to
    the CP *directly* for self-enrollment (`enroll_with_cp`) and to pull
-   the revocation list (`refresh-revocations`) — the CP signs it, and the
-   agent verifies that signature before applying any entry. The playground
+   the revocation list (`refresh-revocations`) — verified before use, see
+   [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest). The playground
    never enrolls on an agent's behalf; it pokes the agent's `/admin`
    route and the agent makes the call itself (the same boundary rule as
    the AITP protocol — see [aitp-integration.md](/playground/aitp-integration)).
@@ -86,11 +86,21 @@ request/response shape, auth, and filters, follow it into the CP's
 | `upsert_trust_anchor(...)` | `POST /api/trust-anchors` | `cp_provision_trust_anchor` | `None` |
 | `upsert_pinned_key(...)` | `POST /api/pinned-keys` | `cp_provision_trust_anchor` | `None` |
 
+The playground does not call every CP route: for example
+`GET /api/trust-anchors/:id/jwks` exists on the CP but is unused here, and
+`POST /api/registry/enroll` + `POST /api/registry/agents` are called by the *agent
+workers* (see "Two clients, one CP"), not by `CpClient`.
+
+`fetch_dashboard_overview(window)` forwards the window to the CP as `?range=`
+(`1h|24h|7d|30d`; an unknown value makes the CP fall back to `24h`).
+
 The list-fetch methods are tolerant of envelope shape — they accept both
 `{items: [...]}` / `{events: [...]}` and a bare top-level list, so they
 keep working across CP response-shape tweaks.
 
 ## Discovery (`cp_registry`)
+
+(CP side: [api.md § Discovery](/control-plane/api#discovery).)
 
 When a scenario sets `spec.trust.discovery: cp_registry`, the
 `TrustOrchestrator` resolves peers marked `org: external` through the CP:
@@ -98,9 +108,9 @@ When a scenario sets `spec.trust.discovery: cp_registry`, the
 1. Derive a capability hint — the first workflow capability the runner
    sees targeted at that agent.
 2. `GET /api/registry/agents?capability=<hint>`.
-3. If the CP returns anything, take the first result's
-   `handshake_endpoint`, derive the manifest URL, and tag the peer
-   `source: cp_registry`.
+3. If the CP returns anything, read the first result's `handshakeEndpoint`
+   (the CP's camelCase key; the snake_case spelling is also accepted), derive
+   the manifest URL from it, and tag the peer `source: cp_registry`.
 4. On empty result, disabled CP, or any error, fall back to
    `http://localhost:<port>` and tag `source: static_fallback`.
 
@@ -115,8 +125,8 @@ disabled. Full field reference is in [scenarios.md](/playground/scenarios#workfl
 
 | Step type | What it does | Demo scenario |
 | --- | --- | --- |
-| `enroll_with_cp` | Agent self-enrolls: `POST /api/registry/enroll` to mint a one-time bearer token, then `POST /api/registry/agents` with that token + its manifest. | `intra-org/external-enrollment` |
-| `revoke_tct` (`via_cp: true`) | Local revoke **plus** `POST /api/revocation/entries`, then the audience pulls the updated list from `/.well-known/aitp-revocation-list`. The CP signs that snapshot and the audience agent **verifies** it against the AID pinned in `CP_AID` before applying any entry — an unverifiable snapshot is discarded, never merged (RFC-AITP-0008 §1.5). With no `CP_AID` pinned there is no expected issuer, so the snapshot is discarded rather than trusted and nothing propagates: fail-closed, and logged as such. The compose stack pins it from the CP's deterministic seed. | `intra-org/revocation-via-cp` |
+| `enroll_with_cp` | Agent self-enrolls ([CP registry API](/control-plane/api#registry)): `POST /api/registry/enroll` to mint a one-time bearer token, then `POST /api/registry/agents` with that token and the **identical manifest bytes** — the CP binds the token to a hash of the exact `/enroll` body (so re-serializing the manifest between the two calls is rejected `401 TOKEN_INVALID`). | `intra-org/external-enrollment` |
+| `revoke_tct` (`via_cp: true`) | Local revoke **plus** `POST /api/revocation/entries`, then the audience pulls the updated list from `/.well-known/aitp-revocation-list`. The CP signs that snapshot and the audience agent **verifies** it against the AID pinned in `CP_AID` before applying any entry — an unverifiable snapshot is discarded, never merged; with no `CP_AID` nothing propagates (fail-closed). The compose stack pins it from the CP's deterministic seed. Where that verification lives in the code: [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest); the rule itself is [RFC-AITP-0008 §1.5](/spec/revocation). | `intra-org/revocation-via-cp` |
 | `cp_subscribe_webhook` | `POST /api/webhooks` pointing at this run's `/webhooks/cp/{run_id}` receiver; stores the returned secret on the run record for HMAC verification. | `intra-org/webhook-subscription` |
 | `cp_provision_trust_anchor` | `upsert_pinned_key` + optional `upsert_trust_anchor` (OIDC issuer) for an agent under a namespace, then reads them back. | `intra-org/cp-trust-anchor-provisioning` |
 | `cp_delegation_tree` | Flushes the run's events to the CP (awaiting the ingest, so the projection is populated mid-run), then walks a delegator's chain via `GET /api/delegations` (CP's recursive `root_jti` query) to show the chain as the CP observed it. | `intra-org/cp-delegation-tree` |
@@ -131,9 +141,12 @@ playground. The flow:
 2. The CP responds with a webhook `id` and a `secret`. The playground
    stores the secret on the run record (and strips it from API responses).
 3. As CP-side events occur, the CP `POST`s them to
-   `/webhooks/cp/{run_id}` with headers `X-Aitp-Signature: sha256=<hex>`,
-   `X-Aitp-Event`, `X-Aitp-Delivery`.
-4. The receiver (`api/webhooks.py`) verifies the HMAC-SHA256 signature
+   `/webhooks/cp/{run_id}`. What the CP sends (delivery body, signature
+   header, retries, circuit breaker) is the CP's contract: see
+   [api.md § Webhooks](/control-plane/api#webhooks) and
+   [events.md](/control-plane/events).
+4. The receiver (`api/webhooks.py`) reads `X-Aitp-Signature` (`sha256=<hex>`),
+   `X-Aitp-Event` and `X-Aitp-Delivery`, and verifies the HMAC-SHA256 signature
    against the stored secret (constant-time compare). Valid deliveries
    append a `cp.webhook.delivered` event to the run log; missing/invalid
    signatures return `401`, unknown runs `404`.
@@ -142,6 +155,8 @@ Inspect what arrived with `GET /runs/{id}/cp-deliveries` (the run's
 webhook config, secret stripped, plus the delivered events).
 
 ## Observability projections
+
+(CP side: [api.md § Sessions](/control-plane/api#sessions), [TCTs](/control-plane/api#tcts-observed), [Delegation chains](/control-plane/api#delegation-chains), [Dashboard](/control-plane/api#dashboard-json), [Trust anchors](/control-plane/api#trust-anchors-oidc), [Pinned keys](/control-plane/api#pinned-keys).)
 
 Two families of read-only endpoints surface what the CP knows. All return
 `cp_enabled: false` with an empty payload when no CP is configured — safe
@@ -168,6 +183,8 @@ to call unconditionally from a dashboard.
 | `GET /cp/pinned-keys` | `/api/pinned-keys` | registered pinned keys |
 
 ## Event ingest
+
+(CP side: [api.md § Events](/control-plane/api#events).)
 
 After every run reaches `run.complete`, the runner fires a background task
 that `POST`s the full run event log to the CP's `/api/events`
@@ -197,15 +214,12 @@ out to webhooks, is the CP's
 - The playground **never** signs revocation lists, mints CP bearer tokens,
   or canonicalizes CP payloads — agents and the CP own that. The
   playground only orchestrates *when* those calls happen.
-- **Snapshot trust lives in `agents/`, and only there.** `refresh_revocations()`
-  (`agents/base/revocation_refresh.py`) is the single decision point: it calls
-  `aitp.verify_revocation_list` against the AID pinned in `CP_AID` and discards
-  anything that does not verify. What it decided is then *held* — not
-  re-decided — by `RevocationState` (`agents/base/revocation_state.py`), which
-  performs no verification of its own by design and keeps the CP-derived
-  deny-set separate from locally-revoked jtis. `CpClient` deliberately has
-  **no** revocation-fetch method — a second ingest path for the same artifact
-  is what produced the signature-blind divergence this boundary now prevents.
+- **Snapshot trust lives in `agents/`, and only there** — the single
+  decision point is `refresh_revocations()`; details in
+  [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest).
+  `CpClient` deliberately has **no** revocation-fetch method — a second
+  ingest path for the same artifact is what produced the signature-blind
+  divergence this boundary now prevents.
 - The CP is a separate repo (`aitp-control-plane`); its API contract is
   the source of truth for the endpoint shapes above. The
   envelope-tolerant parsing that survives in `CpClient` covers observability
