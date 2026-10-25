@@ -3,6 +3,7 @@
 /.pnp
 .pnp.*
 __pnache__
+__pycache__/
 
 # testing
 /coverage
