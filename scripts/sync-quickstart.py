@@ -16,6 +16,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
+# Import the sibling extractor without leaving __pycache__/ in scripts/.
+sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from importlib import import_module
 
