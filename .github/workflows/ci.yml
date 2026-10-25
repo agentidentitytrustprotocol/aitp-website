@@ -20,6 +20,7 @@ jobs:
           python-version: '3.12'
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       - run: npm run check-links
       # The served schemas must equal the spec at the pin in data/schema-pin.json,
       # byte for byte. The spec repo is public, so a blobless clone needs no token.
