@@ -22,6 +22,7 @@ All repositories live in the [`agentidentitytrustprotocol`](https://github.com/a
 |---|---|---|
 | `aitp-rs` | Reference implementation (Rust) with Python and Node bindings and a CLI | [README](/implementation) · [docs index](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/docs/README.md) |
 | `aitp-verifier-py` | Independent Python implementation of the verification core, written from the RFCs and schemas only | [README](https://github.com/agentidentitytrustprotocol/aitp-verifier-py/blob/main/README.md) |
+| `aitp-verifier-ts` | Independent TypeScript implementation of the verification core, written from the RFCs and schemas only: zero dependencies, WebCrypto only, published to npm as `@agentidentitytrustprotocol/verifier` | [README](https://github.com/agentidentitytrustprotocol/aitp-verifier-ts/blob/main/README.md) |
 | `aitp-control-plane` | API-only registry, audit log, revocation list and webhook backend; not in the trust path | [README](/control-plane) · [docs](https://github.com/agentidentitytrustprotocol/aitp-control-plane/blob/main/docs/README.md) |
 | `aitp-playground` | Scenario harness that runs AITP end to end with real LLM agents (a demo, not production) | [README](/playground) · [getting started](/playground/getting-started) |
 | `aitp-ui-console` | Monitoring and control console over the playground and control plane | [README](/console) · [features](/console/features) |
@@ -46,6 +47,24 @@ All repositories live in the [`agentidentitytrustprotocol`](https://github.com/a
 | Run a registry / audit / revocation service | [control-plane API](/control-plane/api) · [events](/control-plane/events) |
 | Try the protocol end to end | [playground getting started](/playground/getting-started) · [scenarios](/playground/scenarios) |
 | Give an AI agent access to the spec | [aitp-docs client setup](https://github.com/agentidentitytrustprotocol/aitp-docs/blob/main/docs/clients.md) |
+| Use AITP alongside MCP's OAuth authorization | [mcp-mapping.md](/docs/mcp-mapping) (non-normative). Not to be confused with the `aitp-docs` MCP server above, which serves the spec to agents. |
+
+## Spec consumers and their pins
+
+Every repository that tests against the spec pins it by commit SHA and adopts a new revision through a held bump PR; the rule is in [CONTRIBUTING.md](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/CONTRIBUTING.md#consuming-the-spec). [`notify-spec-consumers.yml`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/.github/workflows/notify-spec-consumers.yml) dispatches `spec-released` to the consumers marked "dispatched".
+
+| Consumer | SHA-pin file | Bumped by | Dispatched |
+|---|---|---|---|
+| `aitp-rs` | `tests/schemas/SPEC_VERSION` | `bump-spec.yml` → `aitp-ci` `bump-spec-ref` (file mode) | yes |
+| `aitp-verifier-py` | `SPEC_VERSION` | `bump-spec.yml` → `bump-spec-ref` | yes |
+| `aitp-docs` | `sources.lock.json` (`sources.spec.sha`) | planned, DOC1.1 | not yet |
+| `aitp-verifier-ts` | `SPEC_VERSION` | `bump-spec.yml` → `bump-spec-ref` | yes |
+
+A floating-`main` job, such as `aitp-verifier-py`'s daily scheduled run, is a non-blocking canary only. `aitp-website` is not a pinning consumer: it republishes on the `docs-updated` dispatch.
+
+## Schema namespace
+
+Every canonical JSON Schema's `$id` lives under `https://agentidentitytrustprotocol.io/schema/v0.3/`. The host is the project domain `agentidentitytrustprotocol.io`, which the project owns; `aitp-website` serves it. The `$id` is an identifier: no part of the spec dereferences it, and a validator never needs to fetch it. The site serves each schema at its `$id` URL as a convenience; the canonical copy is `schemas/json/` at a `schema-vX.Y.Z` tag. No other host is an AITP schema namespace.
 
 ## Link convention for this repository
 

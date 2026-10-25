@@ -19,6 +19,23 @@ Rust reference implementation of the **Agent Identity & Trust Protocol (AITP)**.
 > pin, and what they do and do not prove, are in
 > [`docs/conformance.md`](/implementation/conformance#v02-conformance-matrix).
 
+## Hello world
+
+Install the CLI, enroll a key with the public
+[interop peer](/implementation/interop-peer) and complete a real handshake with
+it. `aitp echo` hands back the TCT the peer issued, with proof of
+possession:
+
+```bash readme-smoke
+cargo install aitp-cli
+aitp enroll https://interop.agentidentitytrustprotocol.io
+aitp echo https://interop.agentidentitytrustprotocol.io
+```
+
+[`readme-smoke`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/.github/workflows/readme-smoke.yml) runs this block
+daily, as written, against the public peer. On every pull request it runs
+the same block against a peer built from the checkout. [cli.md](/implementation/cli) covers the other commands.
+
 ## What is AITP?
 
 AITP (Agent Identity & Trust Protocol) lets two agents establish mutual
@@ -46,7 +63,7 @@ aitp-rs/
 │   ├── aitp-session-bundle/ Session Trust Bundle (RFC-0010, opt-in)
 │   ├── aitp-transport-http/ HTTP client/server (feature-gated, async)
 │   ├── aitp/                facade: re-exports + async handshake/renewal helpers
-│   ├── aitp-cli/            `aitp` command-line tool (keygen, tct/manifest verify)
+│   ├── aitp-cli/            `aitp` command-line tool (keygen, verify, handshake)
 │   ├── aitp-conformance/    conformance test runner with adapter trait
 │   └── aitp-rs-adapter/     canonical Rust adapter for conformance testing
 ├── bindings/                language SDKs — excluded from the Cargo workspace
@@ -67,7 +84,7 @@ aitp-rs/
 | Crate                 | Status        | Notes                                                  |
 |-----------------------|---------------|--------------------------------------------------------|
 | `aitp-core`           | ✅ complete   | AID, JCS, base64url, timestamps, envelope, error codes. |
-| `aitp-crypto`         | ✅ complete   | Ed25519 (`verify_strict`) + P-256/ES256 (canonical **low-S**, high-S rejected), compact-JWS profile (`jws.rs`), JWK thumbprint. No RSA code: the RSA-2048 floor lives in `aitp-handshake` (OIDC JWK, `jwk.rs`) and `aitp-transport-http` (DPoP, `dpop.rs`). |
+| `aitp-crypto`         | ✅ complete   | Ed25519 (`verify_strict`) + P-256/ES256 (canonical **low-S**, high-S rejected), compact-JWS profile (`jws.rs`), JWK thumbprint. No RSA code: the RSA-2048 floor lives in `aitp-handshake` (OIDC JWK, `jwk.rs`) and `aitp-transport-http` (JWKS fetch, `common.rs`). |
 | `aitp-envelope`       | ✅ complete   | `sign_envelope` / `verify_envelope_signature` — sync, no I/O; wrapped by `aitp-transport-http`. |
 | `aitp-manifest`       | ✅ complete   | Builder + verifier + HTTP wrapper.                      |
 | `aitp-tct`            | ✅ complete   | Builder + verifier + downstream PoP + renewal; strict `TctVerifyContext::builder()` forces explicit revocation / manifest-expiry-cap decisions (`*_dangerous` waivers). |
@@ -76,7 +93,7 @@ aitp-rs/
 | `aitp-session-bundle` | ✅ opt-in | Session Trust Bundle (RFC-0010): builder + verifier; gated behind `experimental-session-bundle`. |
 | `aitp-transport-http` | ✅ complete   | Manifest fetcher (cache-correct, oversize-capped), JWKS resolver (RFC-0007 §2.3 branch), handshake server (AITP error envelopes), revocation endpoint. SSRF `HostGuard` on peer fetches, pluggable `ReplayGuard`, optional `metrics` feature. |
 | `aitp` (facade)       | ✅ complete   | Re-exports + async `run_initiator_handshake` + `TctStore` (+ `renew_tct` behind `experimental-renewal`); `InitiatorConfig` with `with_http_timeout` / `with_host_guard`. |
-| `aitp-cli`            | ✅ complete   | Offline `aitp` binary: `keygen`, `aid`, `tct inspect`/`verify`, `manifest verify`. Stdin-friendly, non-zero exit on failure. See [`crates/aitp-cli/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md). |
+| `aitp-cli`            | ✅ complete   | `aitp` binary (`cargo install aitp-cli`): offline `keygen`, `aid`, `tct inspect`/`verify`, `manifest verify`, plus `manifest fetch` and `handshake <url>` against a live peer. Stdin-friendly, non-zero exit with the AITP error code on failure. See [`docs/cli.md`](/implementation/cli). |
 | `aitp-conformance`    | ✅ Tier A     | Subprocess adapter, fixture loader, runner. |
 | `aitp-rs-adapter`     | ✅ Tier A–D   | All conformance ops, including `verify_handshake_payload` (`id-*` / `mh-*`), `verify_session_bundle` / `issue_session_bundle`, and the `tct-007` PoP-enforcement ops (`authorize_capability_invocation`, `expect_pop_challenge_issued`, `withhold_pop_response`). Results: [`docs/conformance.md`](/implementation/conformance#v02-conformance-matrix). |
 
@@ -105,7 +122,7 @@ RFC-0001 to RFC-0011 are Community Standards Track (Draft), with 0010 and
 | RFC | Title | Status | Notes |
 |-----|-------|--------|-------|
 | [0001](/spec/core) | Core wire format | ✅ implemented | JCS canonicalization, envelope, error codes, replay deny list. |
-| [0002](/spec/identity) | Identity binding | ✅ implemented | Pinned-key v1 (5-field domain-prefixed proof) + OIDC with `cnf.jkt`. Trust store enforced. |
+| [0002](/spec/identity) | Identity binding | ✅ implemented | Pinned-key v1 (5-field domain-prefixed proof) + OIDC with `cnf.jkt`. Trust store enforced. SPIFFE (§6, JWT-SVID and X509-SVID) is experimental, behind `experimental-spiffe-identity`. |
 | [0003](/spec/manifest) | Manifest | ✅ implemented | Builder + verifier + HTTP server + cache-correct fetcher. |
 | [0004](/spec/mutual-handshake) | Mutual handshake | ✅ implemented | Four-message exchange + identity-aware grant policy + Manifest-bound TCT expiry + replay protection. |
 | [0005](/spec/tct) | TCT | ✅ implemented | Issuance, verification, downstream PoP, renewal flow. |
@@ -131,14 +148,16 @@ RFC-0001 to RFC-0011 are Community Standards Track (Draft), with 0010 and
   `experimental-session-bundle` Cargo feature, and in-band TCT renewal
   (RFC-0013, Planned) behind `experimental-renewal`, both on the `aitp`
   facade. The language SDKs ship these features **on by default**.
-- **Revocation checking is the verifier's obligation.** `verify_tct`
-  consults revocation only when a revocation source is configured; the
-  SDKs accept a caller-supplied revoked-`jti` set. A revoked but
-  unexpired TCT is accepted if no source is wired. The
-  strict `TctVerifyContext::builder()` makes the revocation and
-  manifest-expiry-cap decisions **explicit** (opting out requires a named
-  `*_dangerous` waiver); the permissive `permissive_at()` constructor
-  preserves the older accept-if-unwired behavior.
+- **Revocation is fail_closed (RFC-AITP-0008 §3.1).** A verifier with no
+  revocation status for a TCT treats it as revoked (`TCT_REVOKED`). The
+  `HandshakeServer` and `run_initiator_handshake` fetch the peer's
+  advertised `ListRevoked` snapshot, so a peer whose Manifest carries no
+  reachable `rfc-aitp-0008.revocation_list_uri` is refused unless the
+  verifier sets `RevocationFailMode::FailOpen`. `TctVerifyContext::builder()`
+  will not build until a revocation hook is given or the
+  `accept_unchecked_revocation_dangerous()` waiver is named. The SDKs
+  take a caller-supplied revoked-`jti` list (`[]` means nothing is
+  revoked), and omitting it fails closed unless `revocation="fail_open"`.
 - **JWKS resolution from a current-thread runtime.** The synchronous
   `JwksResolver::resolve` sync→async bridge uses `block_in_place`,
   which requires a multi-thread tokio runtime; on a current-thread
@@ -155,11 +174,11 @@ opt-in run modes, and the commands to reproduce them are in
 [`docs/conformance.md`](/implementation/conformance#v02-conformance-matrix). That
 page is the only place these docs give fixture counts.
 
-The runner's exit-code gate keys on `required_for_v0_2` by default: a
+The runner's exit-code gate keys on `required_for_core` by default: a
 required core fixture that fails, or is skipped because the adapter lacks
 its op, fails the run. `--profile v0.1` gates on `required_for_v0_1`
 instead. Details are under
-[v0.2 conformance gate](/implementation/conformance#v02-conformance-gate).
+[core conformance gate](/implementation/conformance#core-conformance-gate).
 
 ## Install
 
@@ -172,9 +191,12 @@ pip install aitp-sdk                              # Python SDK (PyPI)
 The `aitp` crate is the facade re-exporting the protocol surface. The
 HTTP **client** ships by default; add the server when you need it
 (`cargo add aitp --features http-server`, or `--features all`).
-The offline `aitp` CLI ships in-repo and is not yet published to
-crates.io — build it with `cargo build -p aitp-cli` (see
-[`crates/aitp-cli/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md)).
+Only `aitp` carries a semver promise; the internal crates do not (see
+[`STABILITY.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/STABILITY.md)).
+The `aitp` CLI installs with `cargo install aitp-cli` (prebuilt binaries
+are on each `aitp-cli-v*` GitHub Release). `aitp handshake <url>` runs a
+full handshake against a peer and prints the TCT it issues you; see
+[`docs/cli.md`](/implementation/cli).
 
 ## Quick start
 
@@ -233,7 +255,7 @@ Highlights:
 - [`docs/sdk-python.md`](/sdks/python) · [`docs/sdk-node.md`](/sdks/node) — SDK feature guides
 - [`docs/transport-hardening.md`](/implementation/transport-hardening) — HTTP-transport hardening register
 - [`docs/deployment.md`](/implementation/deployment) · [`docs/key-management.md`](/implementation/key-management) — running in production: where state lives, clustering, and signing-key handling
-- [`crates/aitp-cli/README.md`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/crates/aitp-cli/README.md) — the offline `aitp` CLI
+- [`docs/cli.md`](/implementation/cli) — the `aitp` CLI: install, `handshake`, `manifest fetch`, error codes
 
 The protocol itself is defined **normatively** by the
 [AITP RFCs](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/rfcs);

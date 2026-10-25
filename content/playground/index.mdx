@@ -46,7 +46,7 @@ One service, ~20 scenarios, each isolating one AITP behavior:
 | **Handshake & TCTs** | the 4-message mutual handshake; per-call capability authorization |
 | **Trust gating** | a call with no/insufficient TCT is rejected (403), then succeeds after handshake; grant intersection |
 | **Delegation** | single-hop delegation and chained (multi-hop) redemption with scope narrowing (RFC-AITP-0006 / 0011) |
-| **Revocation** | fail-closed local revocation and propagation through the Control Plane's list (RFC-AITP-0008). The consuming agent verifies the CP-signed snapshot before applying any entry ([how](/playground/aitp-integration#revocation-snapshot-ingest)) |
+| **Revocation** | fail-closed local revocation, and per-issuer signed lists (RFC-AITP-0008 §1.5): each agent pulls its own entries from the Control Plane, signs them with its own key, and serves them at `/.well-known/aitp-revocation-list` ([how](/playground/aitp-integration#each-agents-own-revocation-list-issuer-side)) |
 | **Lifecycle** | key rotation (0003 §8), in-band TCT renewal (0013), a TCT verification cache, session bundles (0010), SPKI pinning |
 | **Discovery** | static localhost, `did:web`, and Control Plane registry — each with graceful fallback |
 | **Control Plane** | optional enrollment, webhooks, trust-anchor provisioning, delegation-tree observability |
@@ -65,6 +65,28 @@ pinning, TCT cache, multi-hop delegation) by default; on a slimmed-down or
 older wheel the advanced scenarios report "feature not available" instead of
 crashing. Check `GET /capabilities` to see what your wheel exposes (feature
 flags: [aitp-py README](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/bindings/aitp-py/README.md#cargo-features)).
+
+### Revocation
+
+Revoking a TCT in the Control Plane console reaches the agent that verifies
+it within one `REVOCATION_POLL_SECS` interval. Each agent verifies the TCTs
+it issued, so each one:
+
+1. pulls its own entries from the CP (`GET /api/revocations?iss=<own AID>`);
+2. signs them into its own revocation list, served at
+   `/.well-known/aitp-revocation-list` and advertised in its Manifest as
+   `rfc-aitp-0008.revocation_list_uri`;
+3. verifies that list against its own AID (`aitp.verify_revocation_list`) and
+   enforces it, together with its local revocations, on every capability
+   call, redemption and handshake (`revocation="fail_closed"`).
+
+If the CP is stopped, the last list stays served and enforced until its
+signed `expires_at` (`REVOCATION_LIST_TTL_SECS`). It is never replaced by an
+empty list: past expiry the route answers 503 and a `fail_closed` agent
+refuses calls. A restart re-signs with the same key. `fail_open` is not
+used anywhere. Details:
+[aitp-integration.md](/playground/aitp-integration#revocation-list-ingest-verifier-side);
+acceptance test: `tests/integration/test_revocation_two_agents.py`.
 
 ## Documentation
 
@@ -157,19 +179,24 @@ otherwise).
 #    the comments in pyproject.toml.)
 uv sync                               # or: pip install -e .
 
-# 2. Run.
+# 2. Run. Every non-static route needs a bearer key; unset, they answer 503.
+export PLAYGROUND_API_KEY=$(openssl rand -hex 32)
 uv run uvicorn aitp_playground.main:app --reload --port 8000
 
 # 3. Trigger a scenario.
 curl -X POST http://localhost:8000/runs \
+  -H "Authorization: Bearer $PLAYGROUND_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"scenario_ref":"intra-org/research-and-write@1.0.0",
        "inputs":{"topic":"AI agent trust protocols"}}'
 
 # 4. Watch live events (SSE) or poll:
-curl -N http://localhost:8000/runs/<run_id>/events
-curl    http://localhost:8000/runs/<run_id> | jq .
+curl -N -H "Authorization: Bearer $PLAYGROUND_API_KEY" http://localhost:8000/runs/<run_id>/events
+curl    -H "Authorization: Bearer $PLAYGROUND_API_KEY" http://localhost:8000/runs/<run_id> | jq .
 ```
+
+Authentication, rate limits and the spend cap are described in
+[SECURITY.md](https://github.com/agentidentitytrustprotocol/aitp-playground/blob/main/SECURITY.md).
 
 Agent extras (CrewAI / LangChain / LangGraph + the OpenAI/Anthropic
 clients) are optional; without them the agents fall back to
@@ -200,7 +227,7 @@ aitp-playground/
 │   ├── capabilities.py    # SDK feature probe (GET /capabilities)
 │   └── conformance.py     # RFC fixture catalog + readiness
 ├── agents/                # agent subprocess workers
-│   ├── base/              # shared aitp_server / bootstrap / telemetry / llm / revocation (revocation_state.py, revocation_refresh.py)
+│   ├── base/              # shared aitp_server / bootstrap / telemetry / llm / revocation (revocation_state.py, revocation_refresh.py, revocation_publish.py)
 │   ├── researcher/        # CrewAI worker
 │   ├── writer/            # LangChain worker
 │   └── analyzer/          # LangGraph worker

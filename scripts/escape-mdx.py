@@ -10,19 +10,15 @@ import sys
 import re
 
 PLACEHOLDER = re.compile(r'<([A-Za-z][A-Za-z0-9_./:-]*)>')
+# CommonMark autolinks (<https://...>) are not valid MDX: the '<' opens a JSX tag.
+AUTOLINK = re.compile(r'<((?:https?://|mailto:)[^\s<>]+)>')
 
 
 def escape_prose(text: str) -> str:
-    # <placeholder> style tokens -> &lt;placeholder&gt;  (skips <https://...>: the
-    # ':' is allowed inside but a bare URL has no trailing '>' immediately, and real
-    # autolinks are preserved because they don't match the closing '>' pattern here).
-    def repl(m: 're.Match') -> str:
-        inner = m.group(1)
-        if inner.startswith(('http://', 'https://', 'mailto:')):
-            return m.group(0)  # keep autolinks intact
-        return f'&lt;{inner}&gt;'
-
-    text = PLACEHOLDER.sub(repl, text)
+    # Autolinks -> explicit links, which MDX does parse.
+    text = AUTOLINK.sub(lambda m: f'[{m.group(1).removeprefix("mailto:")}]({m.group(1)})', text)
+    # <placeholder> style tokens -> &lt;placeholder&gt;
+    text = PLACEHOLDER.sub(lambda m: f'&lt;{m.group(1)}&gt;', text)
     # '<' immediately followed by a digit (e.g. <43, <1s) -> escape the bracket only
     text = re.sub(r'<(?=[0-9])', '&lt;', text)
     # Bare braces in prose are parsed by MDX as JS expressions; escape to entities.

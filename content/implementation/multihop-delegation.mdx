@@ -87,8 +87,13 @@ How `crates/aitp-delegation/src/verifier.rs` runs it, with the
      its own `chain` must carry exactly the outer chain's prefix up to that
      entry, with a matching `chain_hash` → else `InvalidVoucher`.
 4. **Revocation**, only after every signature check: `voucher.src_jti`
-   against `with_revocation_check`, then each hop's `(iss, jti)` against
-   `with_hop_revocation_check` → `SourceTctRevoked`.
+   against the `DelegationRevocation::Check` hook passed to
+   `VerifyDelegationContext::new`, then each hop's `(iss, jti)` against
+   `with_hop_revocation_check` → `SourceTctRevoked`. Revocation is
+   `fail_closed` (RFC-AITP-0008 §3.1): a hook that cannot answer, or a
+   multi-hop chain with no hop hook, gives `RevocationUnavailable`
+   (`DELEGATION_SOURCE_TCT_REVOKED` on the wire).
+   `DelegationRevocation::FailOpen` skips every lookup.
 
 Proof of possession is not part of `verify_delegation`: the caller runs the
 RFC-AITP-0006 §4 step 9 exchange against the presenting agent, with the
@@ -109,7 +114,7 @@ bound key from the **outer** token's `sub`
   obtaining them (RFC-AITP-0007 §1 lists the sources). Single-hop tokens
   need the delegator's Manifest from the same source (RFC-AITP-0006 §4
   step 1).
-- **Draft, opt-in.** Outside the v0.2 conformance gate; the `del-mh-*`
+- **Draft, opt-in.** Outside the core conformance gate; the `del-mh-*`
   fixtures run only with `--feature experimental-multihop-delegation`. Pass/skip
   status: [conformance.md](/implementation/conformance#v02-conformance-matrix).
 

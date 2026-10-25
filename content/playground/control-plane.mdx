@@ -58,7 +58,7 @@ straight:
 2. **Agent workers** (`agents/base/agent_admin.py`) — an agent talks to
    the CP *directly* for self-enrollment (`enroll_with_cp`) and to pull
    the revocation list (`refresh-revocations`) — verified before use, see
-   [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest). The playground
+   [aitp-integration.md § Revocation list ingest](/playground/aitp-integration#revocation-list-ingest-verifier-side). The playground
    never enrolls on an agent's behalf; it pokes the agent's `/admin`
    route and the agent makes the call itself (the same boundary rule as
    the AITP protocol — see [aitp-integration.md](/playground/aitp-integration)).
@@ -77,7 +77,8 @@ request/response shape, auth, and filters, follow it into the CP's
 | `ingest_events(events)` | `POST /api/events` | end of every run (background); `cp_delegation_tree` (awaited, mid-run) | no-op, logged |
 | `publish_revocation(jti, reason)` | `POST /api/revocation/entries` | `revoke_tct` with `via_cp` | `False` |
 | `create_webhook(url, events, secret)` | `POST /api/webhooks` | `cp_subscribe_webhook` | `None` |
-| `delete_webhook(id)` | `DELETE /api/webhooks/{id}` | cleanup | `True` (404 = success) |
+| `list_webhooks()` | `GET /api/webhooks` | startup sweep (`main.py`) | `None` → nothing swept |
+| `delete_webhook(id)` | `DELETE /api/webhooks/{id}` | run-end teardown, startup sweep | `False`, logged (404 = success) |
 | `fetch_events_history(...)` | `GET /api/events/history` | `GET /runs/{id}/cp-audit` | `[]` |
 | `fetch_sessions(...)` | `GET /api/sessions` | `GET /runs/{id}/cp-sessions` | `[]` |
 | `fetch_tcts(...)` | `GET /api/tcts` | `GET /cp/tcts` | `[]` |
@@ -130,8 +131,8 @@ disabled. Full field reference is in [scenarios.md](/playground/scenarios#workfl
 | Step type | What it does | Demo scenario |
 | --- | --- | --- |
 | `enroll_with_cp` | Agent self-enrolls ([CP registry API](/control-plane/api#registry)): `POST /api/registry/enroll` to mint a one-time bearer token, then `POST /api/registry/agents` with that token and the **identical manifest bytes** — the CP binds the token to a hash of the exact `/enroll` body (so re-serializing the manifest between the two calls is rejected `401 TOKEN_INVALID`). | `intra-org/external-enrollment` |
-| `revoke_tct` (`via_cp: true`) | Local revoke **plus** `POST /api/revocation/entries`, then the audience pulls the updated list from `/.well-known/aitp-revocation-list`. The CP signs that snapshot and the audience agent **verifies** it against the AID pinned in `CP_AID` before applying any entry — an unverifiable snapshot is discarded, never merged; with no `CP_AID` nothing propagates (fail-closed). The compose stack pins it from the CP's deterministic seed. Where that verification lives in the code: [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest); the rule itself is [RFC-AITP-0008 §1.5](/spec/revocation). | `intra-org/revocation-via-cp` |
-| `revoke_tct` (`via_cp: true`, `local_revoke: false`) | `POST /api/revocation/entries` **only** — no local revoke — then the agents in `refresh_agents` pull and verify the snapshot. The grantor's next redemption rooted in that jti is refused with `source revoked (cp-snapshot)`: the CP entry alone decides it. Skips without a CP. | `intra-org/revocation-cp-only` |
+| `revoke_tct` (`via_cp: true`) | Local revoke **plus** `POST /api/revocation/entries` under the issuer's AID, then the issuer pulls its entries (`GET /api/revocations?iss=`), signs them into its own list at `/.well-known/aitp-revocation-list` and **verifies** that list against its own AID before applying any entry — an unverifiable list is discarded, never merged. The CP signs nothing. Where that lives in the code: [aitp-integration.md § Revocation list ingest](/playground/aitp-integration#revocation-list-ingest-verifier-side); the rule itself is [RFC-AITP-0008 §1.5](/spec/revocation). | `intra-org/revocation-via-cp` |
+| `revoke_tct` (`via_cp: true`, `local_revoke: false`) | `POST /api/revocation/entries` **only** — no local revoke — then the agents in `refresh_agents` (default: the issuer) pull, sign and verify their own lists. The grantor's next redemption rooted in that jti is refused with `source revoked (issuer-list)`: the CP entry alone decides it. Skips without a CP. | `intra-org/revocation-cp-only` |
 | `cp_subscribe_webhook` | `POST /api/webhooks` pointing at this run's `/webhooks/cp/{run_id}` receiver; stores the returned secret on the run record for HMAC verification. | `intra-org/webhook-subscription` |
 | `cp_provision_trust_anchor` | `upsert_pinned_key` + optional `upsert_trust_anchor` (OIDC issuer) for an agent under a namespace, then reads them back. | `intra-org/cp-trust-anchor-provisioning` |
 | `cp_delegation_tree` | Flushes the run's events to the CP (awaiting the ingest, so the projection is populated mid-run), then walks a delegator's chain via `GET /api/delegations` (CP's recursive `root_jti` query) to show the chain as the CP observed it. | `intra-org/cp-delegation-tree` |
@@ -150,14 +151,36 @@ playground. The flow:
    header, retries, circuit breaker) is the CP's contract: see
    [api.md § Webhooks](/control-plane/api#webhooks) and
    [events.md](/control-plane/events).
-4. The receiver (`api/webhooks.py`) reads `X-Aitp-Signature` (`sha256=<hex>`),
-   `X-Aitp-Event` and `X-Aitp-Delivery`, and verifies the HMAC-SHA256 signature
-   against the stored secret (constant-time compare). Valid deliveries
-   append a `cp.webhook.delivered` event to the run log; missing/invalid
-   signatures return `401`, unknown runs `404`.
+4. The receiver (`api/webhooks.py`) checks two HMAC-SHA256 signatures
+   against the stored secret, both with a constant-time compare:
+   - `X-Aitp-Signature` (`sha256=<hex>`), computed over the body;
+   - `X-Aitp-Timestamp-Signature`, computed over `"<X-Aitp-Timestamp>.<body>"`.
+
+   `X-Aitp-Timestamp` is Unix seconds, written as bare digits, and is set on
+   every attempt. It must be within 5 minutes of now. The body's
+   `enqueuedAt` is ignored for this check, so a late retry is still accepted.
+
+   Valid deliveries append a `cp.webhook.delivered` event to the run log,
+   and a repeated `deliveryId` is recorded only once. The receiver returns
+   `401` for a missing or invalid signature or timestamp, a stale timestamp,
+   or a body that carries only the body signature. An unknown run returns
+   `410 Gone`, which the CP takes as "stop delivering here": it disables the
+   subscription instead of retrying.
 
 Inspect what arrived with `GET /runs/{id}/cp-deliveries` (the run's
 webhook config, secret stripped, plus the delivered events).
+
+A subscription lives only as long as its run:
+
+- **At run end** (completed, failed or cancelled) the runner deletes it. On
+  success it first waits for the end-of-run event ingest, and in every case
+  then waits `CP_WEBHOOK_TEARDOWN_GRACE_SECS` (default `120`), so the CP can
+  still deliver and retry the run's own events.
+- **At startup** the service lists the CP's webhooks and deletes every one
+  under its own `PLAYGROUND_BASE_URL/webhooks/cp/`, except those this process
+  has already made. No run survives a restart, so the rest are orphans. This
+  assumes one deployment per base URL: a second replica on the same URL would
+  delete the first one's live subscriptions.
 
 ## Observability projections
 
@@ -219,9 +242,9 @@ out to webhooks, is the CP's
 - The playground **never** signs revocation lists, mints CP bearer tokens,
   or canonicalizes CP payloads — agents and the CP own that. The
   playground only orchestrates *when* those calls happen.
-- **Snapshot trust lives in `agents/`, and only there** — the single
+- **Revocation-list trust lives in `agents/`, and only there** — the single
   decision point is `refresh_revocations()`; details in
-  [aitp-integration.md § Revocation snapshot ingest](/playground/aitp-integration#revocation-snapshot-ingest).
+  [aitp-integration.md § Revocation list ingest](/playground/aitp-integration#revocation-list-ingest-verifier-side).
   `CpClient` deliberately has **no** revocation-fetch method — a second
   ingest path for the same artifact is what produced the signature-blind
   divergence this boundary now prevents.
