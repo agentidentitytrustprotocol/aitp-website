@@ -8,6 +8,7 @@ const footerLinks = [
       { label: 'Documentation', href: '/docs' },
       { label: 'Specification', href: '/spec' },
       { label: 'Registry', href: '/registry' },
+      { label: 'Schemas', href: '/schema/v0.3' },
     ],
   },
   {

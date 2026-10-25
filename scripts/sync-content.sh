@@ -15,6 +15,7 @@ SIBLINGS="$(cd "$REPO_ROOT/.." && pwd)"
 CONTENT_DIR="$REPO_ROOT/content"
 ESCAPER="$SCRIPT_DIR/escape-mdx.py"
 LINKER="$SCRIPT_DIR/rewrite-links.py"
+SCHEMAS="$SCRIPT_DIR/sync-schemas.py"
 # Records "<target mdx>\t<source repo>\t<path within that repo>" for every
 # generated page, so the link pass can resolve relative links from the origin.
 MANIFEST="$(mktemp)"
@@ -116,6 +117,10 @@ for file in "$SPEC_DIR"/registries/*.md; do
   [ "$base" = "readme" ] && base="index"
   gen_mdx "$file" "$CONTENT_DIR/registry/$base.mdx"
 done
+
+# ─── schemas/json/ → public/schema/v0.3/ (pinned, see data/schema-pin.json) ─
+echo "Syncing schemas..."
+python3 "$SCHEMAS" "$SPEC_DIR"
 
 # ─── aitp-rs → content/implementation/ ───────────────────────────────────
 if [ -d "$RS_DIR" ]; then

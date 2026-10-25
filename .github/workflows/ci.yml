@@ -21,5 +21,13 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run check-links
+      # The served schemas must equal the spec at the pin in data/schema-pin.json,
+      # byte for byte. The spec repo is public, so a blobless clone needs no token.
+      - name: Check served schemas against the pinned spec
+        run: |
+          git clone -q --filter=blob:none --no-checkout \
+            https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol "$RUNNER_TEMP/spec"
+          SPEC_DIR="$RUNNER_TEMP/spec" npm run check-schemas
       - run: npm run typecheck
       - run: npm run build
+      - run: npm run check-schema-headers
