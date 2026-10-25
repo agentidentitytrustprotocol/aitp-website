@@ -21,10 +21,10 @@ jobs:
       issues: write
 
     env:
-      # This repo is the org's only private one, and on the Free plan
-      # organization secrets reach public repos only — so AITP_BOT_APP_ID
-      # arrives empty here even though it is set at the org level and works
-      # in every sibling repo. Detect that instead of dying on it (#30).
+      # On the Free plan, organization secrets reach public repos only. While
+      # this repo was private (until 2026-10-25, #61), AITP_BOT_APP_ID arrived
+      # empty here. The guard stays so a visibility change can never break the
+      # sync again; it just falls back to GITHUB_TOKEN (#30).
       HAS_APP_TOKEN: ${{ secrets.AITP_BOT_APP_ID != '' }}
 
     steps:
