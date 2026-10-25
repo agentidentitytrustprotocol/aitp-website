@@ -1,0 +1,15 @@
+# gitleaks configuration: the default rules, plus one narrow allowlist.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = """
+public/schema/v0.3/ mirrors the spec's JSON Schemas byte for byte (CI checks
+them against the pinned schema-v0.3.3 tag). Their `examples` carry placeholder
+compact JWS strings, such as a TCT whose only claim is `ver`. They are not
+credentials, and the spec repository has published them since the schemas
+existed. Only the jwt rule is allowlisted, and only for these files.
+"""
+targetRules = ["jwt"]
+paths = ['''^public/schema/v0\.3/[a-z-]+\.json$''']
