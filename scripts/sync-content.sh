@@ -122,6 +122,14 @@ done
 echo "Syncing schemas..."
 python3 "$SCHEMAS" "$SPEC_DIR"
 
+# ─── spec release tags → data/spec-tags.json (hero version badge) ────────
+# From the remote, so a shallow CI checkout with no tags still sees them all.
+echo "Recording spec tags..."
+git -C "$SPEC_DIR" ls-remote --tags --refs origin 'v*' \
+  | sed 's|.*refs/tags/||' | LC_ALL=C sort \
+  | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().split(), indent=2))' \
+  > "$REPO_ROOT/data/spec-tags.json"
+
 # ─── aitp-rs → content/implementation/ ───────────────────────────────────
 if [ -d "$RS_DIR" ]; then
   echo "Syncing implementation (aitp-rs)..."

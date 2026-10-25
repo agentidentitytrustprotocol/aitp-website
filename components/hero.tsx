@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SPEC_VERSION } from '@/lib/spec-version';
 
 export function Hero() {
   return (
@@ -88,7 +89,7 @@ export function Hero() {
           {/* Version badge */}
           <div className="mt-8">
             <span className="inline-flex items-center rounded-full border border-fd-primary/15 bg-fd-primary/5 px-3 py-1 text-xs font-medium text-fd-primary">
-              v0.3.0-draft &middot; RFC-driven &middot; Community Standards Track
+              {SPEC_VERSION} &middot; RFC-driven &middot; Community Standards Track
             </span>
           </div>
         </div>
