@@ -49,6 +49,16 @@ export function Hero() {
             </div>
           </div>
 
+          {/* Current announcement */}
+          <Link
+            href="/news/aitp-0.3-freeze"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-fd-primary/25 bg-fd-primary/5 px-4 py-1.5 text-sm text-fd-foreground transition-colors hover:border-fd-primary/50"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-fd-primary" />
+            aitp/0.3 wire freeze &middot; public review open
+            <span className="text-fd-primary">&rarr;</span>
+          </Link>
+
           <h1 className="mb-6 text-4xl font-bold tracking-tight text-fd-foreground sm:text-5xl lg:text-6xl">
             Agent Identity &amp;{' '}
             <span className="bg-gradient-to-r from-blue-400 via-fd-primary to-violet-400 bg-clip-text text-transparent">

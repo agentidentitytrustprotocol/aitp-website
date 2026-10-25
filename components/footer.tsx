@@ -5,6 +5,7 @@ const footerLinks = [
   {
     title: 'Learn',
     links: [
+      { label: 'News', href: '/news' },
       { label: 'Documentation', href: '/docs' },
       { label: 'Specification', href: '/spec' },
       { label: 'Registry', href: '/registry' },

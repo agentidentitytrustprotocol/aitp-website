@@ -7,6 +7,7 @@ import {
   controlPlane,
   playground,
   consoleDocs,
+  news,
 } from '@/.source/server';
 import { loader } from 'fumadocs-core/source';
 import type { ReactElement } from 'react';
@@ -60,4 +61,9 @@ export const playgroundSource = loader({
 export const consoleSource = loader({
   baseUrl: '/console',
   source: consoleDocs.toFumadocsSource(),
+});
+
+export const newsSource = loader({
+  baseUrl: '/news',
+  source: news.toFumadocsSource(),
 });
