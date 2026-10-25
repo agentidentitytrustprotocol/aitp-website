@@ -153,7 +153,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 5
+      "duration_ms": 4
     },
     {
       "id": "del-004",
@@ -161,7 +161,7 @@
       "feature": null,
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 2
     },
     {
       "id": "del-005",
@@ -361,7 +361,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 4
     },
     {
       "id": "id-005",
@@ -369,7 +369,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-006",
@@ -377,7 +377,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-007",
@@ -393,7 +393,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-009",
@@ -409,7 +409,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 32
+      "duration_ms": 30
     },
     {
       "id": "id-011",
@@ -417,7 +417,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 29
     },
     {
       "id": "id-011b",
@@ -433,7 +433,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 30
+      "duration_ms": 29
     },
     {
       "id": "id-013",
@@ -473,7 +473,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-018",
@@ -521,7 +521,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 31
+      "duration_ms": 30
     },
     {
       "id": "id-024",
@@ -585,7 +585,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-002",
@@ -625,7 +625,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-007",
@@ -649,7 +649,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "mh-003",
@@ -681,7 +681,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 2
     },
     {
       "id": "mh-007",
@@ -1033,7 +1033,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "tct-026",
@@ -1041,7 +1041,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 2
     },
     {
       "id": "tct-027",
@@ -1116,5 +1116,5 @@
       "criteria": "feature-all-pass"
     }
   ],
-  "generated_at": "2026-10-25T18:50:05Z"
+  "generated_at": "2026-10-25T23:19:35Z"
 }
