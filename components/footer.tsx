@@ -17,6 +17,7 @@ const footerLinks = [
     links: [
       { label: 'SDKs', href: '/sdks' },
       { label: 'Implementation', href: '/implementation' },
+      { label: 'Conformance', href: '/conformance' },
       { label: 'Control Plane', href: '/control-plane' },
     ],
   },

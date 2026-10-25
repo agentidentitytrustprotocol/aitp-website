@@ -1,0 +1,26 @@
+[
+  {
+    "id": "aitp-rs",
+    "name": "aitp-rs",
+    "description": "Rust reference implementation",
+    "repository": "agentidentitytrustprotocol/aitp-rs",
+    "artifact": "conformance-report",
+    "file": "conformance-report.json"
+  },
+  {
+    "id": "aitp-verifier-py",
+    "name": "aitp-verifier-py",
+    "description": "Python verifier",
+    "repository": "agentidentitytrustprotocol/aitp-verifier-py",
+    "artifact": "conformance-reports",
+    "file": "badge.json"
+  },
+  {
+    "id": "aitp-verifier-ts",
+    "name": "aitp-verifier-ts",
+    "description": "TypeScript verifier",
+    "repository": "agentidentitytrustprotocol/aitp-verifier-ts",
+    "artifact": "conformance-report",
+    "file": "conformance.json"
+  }
+]

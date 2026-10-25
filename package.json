@@ -21,6 +21,8 @@
   "dependencies": {
     "@eslint/eslintrc": "^3.3.7",
     "@types/mdx": "^2.0.14",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "fumadocs-core": "^16.15.15",
     "fumadocs-mdx": "^15.4.5",
     "fumadocs-ui": "^16.15.15",
