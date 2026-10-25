@@ -7,6 +7,7 @@ import {
   sdksSource,
   controlPlaneSource,
   playgroundSource,
+  newsSource,
 } from '@/lib/source';
 
 const BASE_URL = 'https://agentidentitytrustprotocol.io';
@@ -15,10 +16,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE_URL, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${BASE_URL}/community`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/news`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE_URL}/schema/v0.3`, changeFrequency: 'monthly', priority: 0.5 },
   ];
 
   // The console docs section is intentionally excluded (noindex operational reference).
   const sources = [
+    { source: newsSource, priority: 0.8 },
     { source: docsSource, priority: 0.9 },
     { source: specSource, priority: 0.9 },
     { source: sdksSource, priority: 0.8 },

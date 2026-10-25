@@ -29,6 +29,11 @@ jobs:
           git clone -q --filter=blob:none --no-checkout \
             https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol "$RUNNER_TEMP/spec"
           SPEC_DIR="$RUNNER_TEMP/spec" npm run check-schemas
+      # A post's review window must equal the dates its Discussion states.
+      - name: Check review dates against the Discussion
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run check-review-dates
       - run: npm run typecheck
       - run: npm run build
       - run: npm run check-schema-headers

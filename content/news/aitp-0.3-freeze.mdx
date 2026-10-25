@@ -1,0 +1,77 @@
+---
+title: "aitp/0.3 wire freeze and public review"
+description: "The aitp/0.3 wire is frozen until 1.0, and the nine core RFCs are open for public review."
+date: "2026-10-25"
+review:
+  opens: "2026-10-24"
+  closes: "2027-01-10"
+  discussion: "https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/discussions/117"
+---
+
+With spec release [`v0.3.3-draft`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/releases/tag/v0.3.3-draft),
+the `aitp/0.3` wire is frozen. The nine core RFCs,
+[RFC-AITP-0001](/spec/core) to [RFC-AITP-0009](/spec/security), have moved to
+the *Community Standards Track (Review)* stage, and the public review is open.
+
+## What is frozen
+
+Until 1.0, the `aitp/0.3` line makes **no wire-breaking change** to anything
+RFC-AITP-0001 to 0009 define. The one exception is a disclosed security fix.
+An artifact that verifies today, or fails with a given error code, does the
+same under every later `aitp/0.3` release.
+
+The freeze covers:
+
+- the bytes every signature and proof covers;
+- the message types, and the members of every envelope, payload, Manifest,
+  identity descriptor, revocation snapshot and token claims set outside
+  `extensions`;
+- every [error code](/registry/error-codes), its meaning, and which code a given
+  failure returns;
+- the `aitp/0.3` version literal;
+- the known-answer vectors, which take additions only;
+- the validation outcome of every fixture against the
+  [JSON Schemas](/schema/v0.3).
+
+Additive identity types, opt-in extension RFCs, clarifications, new fixtures
+and schema refactors that change no validation outcome are still allowed. The
+full list, with the RFC section for each surface, is in
+[VERSIONING.md, What is frozen](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/VERSIONING.md#what-is-frozen-aitp03-line).
+
+The freeze covers the wire, not the prose. The RFCs can still be clarified,
+and a contradiction between the text and a pinned artifact is settled toward
+the pinned bytes, with an erratum note.
+
+## What the review is for
+
+Because the wire is frozen, the review is about **correctness** and
+**clarity**:
+
+- a rule that is wrong, contradicts another RFC, a schema, a fixture or a
+  known-answer vector, or cannot be implemented as written;
+- a rule you had to guess at, an ambiguous MUST, a missing step or error code,
+  or an example that does not match the text.
+
+A non-security comment that needs a wire change is recorded and deferred to
+post-1.0, not dropped. Every comment gets a recorded disposition when the
+window closes. The comments and their dispositions are then published, and
+the next stage, Release Candidate, is decided from them.
+
+## How to comment
+
+Comment in the [review Discussion](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/discussions/117).
+Make one top-level comment per point, and cite the section as
+`RFC-AITP-NNNN §x.y`. For a concrete text fix, a pull request against the RFC
+works too.
+
+**Security issues never go in the Discussion.** Report them privately, as
+[SECURITY.md](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/SECURITY.md)
+describes.
+
+## Test the text against the conformance suite
+
+The fastest way to check an RFC is to run the
+[conformance fixtures](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/tree/main/schemas/conformance)
+against an implementation. If you cannot derive a fixture's expected outcome
+from the RFC, that is a clarity bug worth reporting. The report format and
+badge rules are in [Conformance reports and badges](/docs/conformance-badge).
