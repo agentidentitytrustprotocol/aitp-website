@@ -69,8 +69,8 @@ const r = bob.newResponder(null, { pinnedKeys: [alice.aid] });
 const hello = s.buildHello(bobManifest, ['demo.echo']);
 const { ackJson, sessionId } = r.processHello(hello);
 const commit = s.processHelloAck(ackJson, sessionId);
-const { ackJson: cack, completed: bobSide } = r.processCommit(commit);  // bobSide: what alice issued to bob
-const held = s.complete(cack);
+const { ackJson: cack, completed: bobSide } = r.processCommit(commit, []);  // bobSide: what alice issued to bob
+const held = s.complete(cack, []);
 const tctJws     = held.tct;           // compact JWS issued by bob — store / present this
 const claims     = held.claims;        // decoded { iss, sub, aud, grants, iat, exp, jti }
 const voucherJws = held.grantVoucher;  // compact JWS, or undefined if bob disallowed delegation
@@ -119,26 +119,90 @@ explains what a verifier checks and why.
 
 ```javascript
 // Holder-receipt model — the verifier's AID is the agent's own AID (default).
-const ident = alice.verifyTct(tctJws, 'demo.echo');
+const ident = alice.verifyTct(tctJws, 'demo.echo', undefined, []);
 console.log(ident.peerAid === bob.aid, ident.grants);   // true [ 'demo.echo' ]
 
 // Presented-TCT model — a resource server checking a TCT a peer presented
-// (e.g. in `X-AITP-TCT`). The expected audience is the TCT's subject (aud == sub).
-const presented = bob.verifyTct(tctJws, 'demo.echo', alice.aid);
+// (e.g. in `X-AITP-TCT`). It challenges the presenter for proof of possession
+// (RFC-AITP-0005 §6); verifyTct then checks the TCT and the PoP response
+// together and pins the audience to the proven holder AID (the TCT's `sub`).
+const challenge = bob.newPopChallenge(tctJws);        // send to the presenter
+const response = alice.signPopResponse(challenge);    // the presenter's reply
+const presented = bob.verifyTct(tctJws, 'demo.echo', null, [], undefined, { challenge, response });
 
-// Revocation gate: pass the revoked TCT `jti`s. Verifiers SHOULD supply it —
-// omitting it accepts a revoked-but-unexpired TCT.
+// Revocation is fail_closed: pass the issuer's revoked TCT `jti`s (`[]` when
+// nothing is revoked). A revoked jti and a missing list both throw with
+// `code === 'TCT_REVOKED'`.
 try {
   alice.verifyTct(tctJws, 'demo.echo', null, [ident.jti]);
 } catch (err) {
-  console.log(err.message);   // TCT verification failed: TCT jti is revoked
+  console.log(err.code, err.message);   // TCT_REVOKED TCT verification failed: TCT jti is revoked
 }
+try {
+  alice.verifyTct(tctJws, 'demo.echo');   // no list: status unavailable
+} catch (err) {
+  console.log(err.code);   // TCT_REVOKED
+}
+
+// Explicit opt-out, for a deployment with no revocation source at all.
+alice.verifyTct(tctJws, 'demo.echo', null, undefined, 'fail_open');
 ```
 
-A failed verification throws an `Error`. Its `code` is napi's generic
-`GenericFailure`, not an AITP error code. The Rust core does have
-`ErrorCode::TctRevoked` and the other TCT codes, but the binding exposes them
-only in the message text. Do not branch on that text.
+Revocation is `fail_closed` (RFC-AITP-0008 §3.1): without `revokedJtis`
+every TCT is rejected, because an unknown revocation status counts as
+revoked. Pass `'fail_open'` as the `revocation` argument only when the
+deployment has no revocation source; any other value throws.
+
+The issuer side of the same rule: every agent that issues TCTs MUST advertise
+its `ListRevoked` URL in its signed Manifest (RFC-AITP-0005 §11,
+RFC-AITP-0008 §1.4). Pass `revocationListUri` to `buildManifest`,
+conventionally your origin plus `REVOCATION_LIST_PATH`
+(`/.well-known/aitp-revocation-list`). Without it, a `fail_closed` verifier
+that discovers lists through the Manifest rejects your TCTs as `TCT_REVOKED`.
+
+```javascript
+// not executed: fragment
+agent.buildManifest({
+  displayName: 'alice',
+  handshakeEndpoint: 'https://alice.example/aitp/handshake/',
+  offeredCaps: ['demo.echo'],
+  revocationListUri: `https://alice.example${REVOCATION_LIST_PATH}`,
+});
+```
+
+A revocation failure (a listed `jti`, or no list under `fail_closed`) throws
+an `Error` whose `code` is `'TCT_REVOKED'`. A PoP failure throws one whose
+`code` is `'POP_CHALLENGE_INVALID'` (a malformed or stale challenge) or
+`'POP_RESPONSE_INVALID'` (any other RFC-AITP-0005 §6.2 step). Every other failed verification
+throws an `Error` whose `code` is napi's generic `GenericFailure`; the Rust
+core's other TCT codes appear only in the message text, so do not branch on
+that text.
+
+#### Downstream proof of possession
+
+Verify a TCT a peer presents with `pop: { challenge, response }`, as in the
+presented-TCT example above. That is the only way the SDK checks that the
+presenter holds the key the TCT is bound to
+([RFC-AITP-0005 §6](/spec/tct#6-binding-proof-of-possession)).
+`pop` and `expectedAudience` are mutually exclusive. If you pass
+`expectedAudience` instead, the presenter's AID must come from an
+authenticated source, such as a verified PoP response or an equivalent
+channel binding (mTLS with a bound client certificate). Never take it from
+the token's own `aud`: that makes the audience check vacuous.
+
+- `AitpAgent.newPopChallenge(tctToken, ttlSecs?)` is the consumer side
+  (`ttlSecs` defaults to 60). It returns a `pop_challenge` payload
+  (`tct_jti`, a 128-bit CSPRNG `nonce`, `expires_at`).
+- `AitpAgent.signPopResponse(challengeJson)` is the holder side. It signs
+  `sha256` of the decoded nonce bytes and returns the `pop_response` payload.
+- `verifyPopResponse(challengeJson, responseJson, tctToken)` runs only the
+  §6.2 checks and returns the proven holder AID. It does not verify the TCT
+  itself.
+
+The JSON values are envelope payloads: wrap them with `signEnvelope` for the
+wire. Replay protection stays with the caller (RFC-AITP-0001 §5.5): the SDK
+keeps no record of issued challenges. Accept a response to each challenge at
+most once.
 
 #### Cached verification (`TctStore`)
 
@@ -149,8 +213,8 @@ same TCT on many requests:
 import { TctStore } from '@agentidentitytrustprotocol/aitp';
 
 const store = new TctStore(1024);
-alice.verifyTctCached(tctJws, 'demo.echo', store);
-alice.verifyTctCached(tctJws, 'demo.echo', store);   // signature check skipped
+alice.verifyTctCached(tctJws, 'demo.echo', store, undefined, []);
+alice.verifyTctCached(tctJws, 'demo.echo', store, undefined, []);   // signature check skipped
 console.log(store.len());   // 1
 ```
 
@@ -195,7 +259,7 @@ const delegationJws = alice.buildDelegation(voucherJws, carol.aid, ['demo.echo']
 const revoked = [];   // bob's deny list, e.g. jtis from verified revocation snapshots
 const verified = verifyDelegation(delegationJws, bob.aid, [aliceManifest], revoked);
 const { tct: carolTct, grantVoucher: carolVoucher } = bob.issueTctForDelegatee(verified);
-console.log(carol.verifyTct(carolTct, 'demo.echo').peerAid === bob.aid);   // true
+console.log(carol.verifyTct(carolTct, 'demo.echo', undefined, []).peerAid === bob.aid);   // true
 ```
 
 The signature is `buildDelegation(voucherToken, delegateeAid, scope, ttlSecs?)`.
@@ -341,14 +405,23 @@ dave.buildManifest({
   identityType: 'oidc',
   oidcIssuer: 'https://idp.example/',
   oidcSubject: 'dave',
+  acceptedIdentityTypes: ['oidc', 'pinned_key'],   // bob presents a pinned key
 });
 
 // Synchronous callback: return a fresh JWT bound to this handshake and dave's key.
 const mint = (popNonce) =>
   myIdp.mintJwtSync({ sub: 'dave', aud: bob.aid, nonce: popNonce, cnfJkt: computeAidJkt(dave.aid) });
 
+// Each side must list the other's identity type (RFC-AITP-0004 §5.1 step 8),
+// so bob re-publishes a manifest that accepts OIDC peers too.
+const bobOidcManifest = bob.buildManifest({
+  displayName: 'bob',
+  handshakeEndpoint: 'https://bob.example/aitp/handshake/',
+  offeredCaps: ['demo.echo'],
+  acceptedIdentityTypes: ['pinned_key', 'oidc'],
+});
 const sess = dave.newSession(jwks, { pinnedKeys: [bob.aid] });   // bob answers with a pinned key
-const oidcHello = sess.buildHello(bobManifest, ['demo.echo'], mint);
+const oidcHello = sess.buildHello(bobOidcManifest, ['demo.echo'], mint);
 
 // bob's manifest accepts no OIDC issuer by default, so his responder must
 // trust the IdP explicitly.

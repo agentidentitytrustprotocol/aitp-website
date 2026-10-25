@@ -67,8 +67,8 @@ r = bob.new_responder(pinned_keys=[alice.aid])
 hello = s.build_hello(bob_manifest, ["demo.echo"])
 ack, sid = r.process_hello(hello)
 commit   = s.process_hello_ack(ack, sid)
-cack, bob_side_json = r.process_commit(commit)  # bob_side_json: what alice issued to bob
-held = json.loads(s.complete(cack))             # complete() returns a JSON string
+cack, bob_side_json = r.process_commit(commit, revoked_jtis=set())  # bob_side_json: what alice issued to bob
+held = json.loads(s.complete(cack, revoked_jtis=set()))             # complete() returns a JSON string
 tct_jws     = held["tct"]            # compact JWS issued by bob — store / present this
 voucher_jws = held["grant_voucher"]  # compact JWS, or None if bob disallowed delegation
 ```
@@ -121,26 +121,89 @@ explains what a verifier checks and why.
 
 ```python
 # Holder-receipt model — the verifier's AID is the agent's own AID (default).
-ident = alice.verify_tct(tct_jws, "demo.echo")
+ident = alice.verify_tct(tct_jws, "demo.echo", revoked_jtis=set())
 print(ident.peer_aid == bob.aid, ident.grants)   # True ['demo.echo']
 
 # Presented-TCT model — a resource server checking a TCT a peer presented
-# (e.g. in `X-AITP-TCT`). The expected audience is the TCT's subject (aud == sub).
-ident = bob.verify_tct(tct_jws, "demo.echo", expected_audience=alice.aid)
+# (e.g. in `X-AITP-TCT`). It challenges the presenter for proof of possession
+# (RFC-AITP-0005 §6); verify_tct then checks the TCT and the PoP response
+# together and pins the audience to the proven holder AID (the TCT's `sub`).
+challenge = bob.new_pop_challenge(tct_jws)        # send to the presenter
+response = alice.sign_pop_response(challenge)     # the presenter's reply
+ident = bob.verify_tct(tct_jws, "demo.echo", revoked_jtis=set(), pop=(challenge, response))
 
-# Revocation gate: pass the set of revoked TCT `jti`s. Verifiers SHOULD supply
-# it — omitting it accepts a revoked-but-unexpired TCT.
+# Revocation is fail_closed: pass the issuer's revoked TCT `jti`s (an empty
+# set when nothing is revoked). A revoked jti and a missing list both raise
+# with `.code == "TCT_REVOKED"`.
 try:
     alice.verify_tct(tct_jws, "demo.echo", revoked_jtis={ident.jti})
 except RuntimeError as err:
-    print(err)   # TCT verification failed: TCT jti is revoked
+    print(err.code, err)   # TCT_REVOKED TCT verification failed: TCT jti is revoked
+try:
+    alice.verify_tct(tct_jws, "demo.echo")   # no list: status unavailable
+except RuntimeError as err:
+    print(err.code)   # TCT_REVOKED
+
+# Explicit opt-out, for a deployment with no revocation source at all.
+alice.verify_tct(tct_jws, "demo.echo", revocation="fail_open")
 ```
 
-A failed verification raises a plain `RuntimeError` with no `.code`
-attribute. Malformed input, such as a token that is not a compact JWS or a bad
-`expected_audience` AID, raises `ValueError` instead. The Rust core does have
-`ErrorCode::TctRevoked` and the other TCT codes, but the binding exposes them
-only in the message text. Do not branch on that text.
+Revocation is `fail_closed` (RFC-AITP-0008 §3.1): without `revoked_jtis`
+every TCT is rejected, because an unknown revocation status counts as
+revoked. Pass `revocation="fail_open"` only when the deployment has no
+revocation source; any other `revocation` value raises `ValueError`.
+
+The issuer side of the same rule: every agent that issues TCTs MUST advertise
+its `ListRevoked` URL in its signed Manifest (RFC-AITP-0005 §11,
+RFC-AITP-0008 §1.4). Pass `revocation_list_uri` to `build_manifest`,
+conventionally your origin plus `aitp.REVOCATION_LIST_PATH`
+(`/.well-known/aitp-revocation-list`). Without it, a `fail_closed` verifier
+that discovers lists through the Manifest rejects your TCTs as `TCT_REVOKED`.
+
+```python
+# not executed: fragment
+agent.build_manifest(
+    display_name="alice",
+    handshake_endpoint="https://alice.example/aitp/handshake/",
+    offered_caps=["demo.echo"],
+    revocation_list_uri="https://alice.example" + aitp.REVOCATION_LIST_PATH,
+)
+```
+
+A revocation failure (a listed `jti`, or no list under `fail_closed`) raises a
+`RuntimeError` whose `.code` is `"TCT_REVOKED"`. A PoP failure raises one
+whose `.code` is `"POP_CHALLENGE_INVALID"` (a malformed or stale challenge)
+or `"POP_RESPONSE_INVALID"` (any other RFC-AITP-0005 §6.2 step). Every other
+failed verification raises a plain `RuntimeError` with no `.code` attribute; the
+Rust core's other TCT codes appear only in the message text, so do not branch
+on that text. Malformed input, such as a token that is not a compact JWS or a
+bad `expected_audience` AID, raises `ValueError` instead.
+
+#### Downstream proof of possession
+
+Verify a TCT a peer presents with `pop=(challenge_json, response_json)`, as in
+the presented-TCT example above. That is the only way the SDK checks that the
+presenter holds the key the TCT is bound to
+([RFC-AITP-0005 §6](/spec/tct#6-binding-proof-of-possession)).
+`pop` and `expected_audience` are mutually exclusive. If you pass
+`expected_audience` instead, the presenter's AID must come from an
+authenticated source, such as a verified PoP response or an equivalent
+channel binding (mTLS with a bound client certificate). Never take it from
+the token's own `aud`: that makes the audience check vacuous.
+
+- `AitpAgent.new_pop_challenge(tct_token, ttl_secs=60)` is the consumer side.
+  It returns a `pop_challenge` payload (`tct_jti`, a 128-bit CSPRNG `nonce`,
+  `expires_at`).
+- `AitpAgent.sign_pop_response(challenge_json)` is the holder side. It signs
+  `sha256` of the decoded nonce bytes and returns the `pop_response` payload.
+- `aitp.verify_pop_response(challenge_json, response_json, tct_token)` runs
+  only the §6.2 checks and returns the proven holder AID. It does not verify
+  the TCT itself.
+
+The JSON values are envelope payloads: wrap them with `sign_envelope` for the
+wire. Replay protection stays with the caller (RFC-AITP-0001 §5.5): the SDK
+keeps no record of issued challenges. Accept a response to each challenge at
+most once.
 
 #### Cached verification (`TctStore`)
 
@@ -149,14 +212,15 @@ the signature check on repeat sightings:
 
 ```python
 store = aitp.TctStore(max_entries=1024)
-ident = alice.verify_tct_cached(tct_jws, "demo.echo", store)
-ident = alice.verify_tct_cached(tct_jws, "demo.echo", store)  # signature check skipped
+ident = alice.verify_tct_cached(tct_jws, "demo.echo", store, revoked_jtis=set())
+ident = alice.verify_tct_cached(tct_jws, "demo.echo", store, revoked_jtis=set())  # signature check skipped
 print(store.len())   # 1
 ```
 
 The cache key is the SHA-256 of the exact token bytes, so only a
 byte-identical token can hit. Expiry, audience, required grant and
-`revoked_jtis` are re-checked on every call, including cache hits.
+revocation (`revoked_jtis`, `fail_closed`) are re-checked on every call,
+including cache hits.
 
 #### Verifying without this SDK
 
@@ -196,7 +260,7 @@ verified = aitp.verify_delegation(
 )
 issued = json.loads(bob.issue_tct_for_delegatee(verified))  # JSON string
 carol_tct = issued["tct"]
-print(carol.verify_tct(carol_tct, "demo.echo").peer_aid == bob.aid)   # True
+print(carol.verify_tct(carol_tct, "demo.echo", revoked_jtis=set()).peer_aid == bob.aid)   # True
 ```
 
 The signature is `build_delegation(voucher_token, delegatee_aid, scope, ttl_secs=None)`.
@@ -333,6 +397,7 @@ dave.build_manifest(
     handshake_endpoint="https://dave.example/aitp/handshake/",
     offered_caps=["demo.write"],
     identity_type="oidc", oidc_issuer="https://idp.example/", oidc_subject="dave",
+    accepted_identity_types=["oidc", "pinned_key"],   # bob presents a pinned key
 )
 
 def mint(pop_nonce: str) -> str:
@@ -340,6 +405,14 @@ def mint(pop_nonce: str) -> str:
     return my_idp.mint_jwt(sub="dave", aud=bob.aid, nonce=pop_nonce,
                            cnf_jkt=aitp.compute_aid_jkt(dave.aid))
 
+# Each side must list the other's identity type (RFC-AITP-0004 §5.1 step 8),
+# so bob re-publishes a manifest that accepts OIDC peers too.
+bob_manifest = bob.build_manifest(
+    display_name="bob",
+    handshake_endpoint="https://bob.example/aitp/handshake/",
+    offered_caps=["demo.echo"],
+    accepted_identity_types=["pinned_key", "oidc"],
+)
 sess = dave.new_session(jwks=jwks, pinned_keys=[bob.aid])   # bob answers with a pinned key
 oidc_hello = sess.build_hello(bob_manifest, ["demo.echo"], oidc_mint_jwt=mint)
 
@@ -509,7 +582,7 @@ the field names match apart from casing (`grant_voucher` / `grantVoucher`).
 | Non-manifest input to manifest verification (including a duplicate key) | `ValueError` | `Error` with `code === 'malformed'` |
 | Revoked-JTI sets | `set` or `frozenset` of `str` (not a `list` or other iterable) | `Array<string>` |
 | `sign_envelope` / `signEnvelope` optional arguments | keyword arguments `extensions_json`, `message_id`, `timestamp` | an `opts` object `{ extensionsJson, messageId, timestamp }` |
-| TCT verification failure | `RuntimeError`, no `.code` | `Error` with napi's generic `code === 'GenericFailure'`, no AITP code |
+| TCT verification failure | `RuntimeError`; `.code == "TCT_REVOKED"` on revocation failures, otherwise no `.code` | `Error`; `code === 'TCT_REVOKED'` on revocation failures, otherwise napi's generic `'GenericFailure'` |
 
 ## Tests + interop
 

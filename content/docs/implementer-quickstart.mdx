@@ -9,6 +9,8 @@ context so you don't end up reading them backwards. For SDKs, an
 independent verifier, and other implementation-side material, see
 [`docs/ecosystem.md`](/docs/ecosystem).
 
+To see a working handshake before reading anything, run the three commands at the top of the [README](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/README.md#try-it-in-three-commands) against the hosted interop peer.
+
 ---
 
 ## Two signing profiles
@@ -116,14 +118,16 @@ delegation, revocation and error codes — is unchanged. See
 
 ### Status and opt-in RFCs
 
-Per the [RFC index](/spec), RFCs 0001–0011 are **Draft**
-(see [governance/RFC-PROCESS.md](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/governance/RFC-PROCESS.md) for the
-lifecycle). Of those, RFC-AITP-0010 (Session Trust Bundle) and
-RFC-AITP-0011 (Multi-hop Delegation) are **opt-in**: Draft normative
-text, outside v0.3 core conformance. RFC-AITP-0012 (Extensions) is
+Per the [RFC index](/spec), RFCs 0001–0009 are in **Review**
+and RFCs 0010, 0011 and 0014 are **Draft** (see
+[governance/RFC-PROCESS.md](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/governance/RFC-PROCESS.md) for the
+lifecycle). RFC-AITP-0010 (Session Trust Bundle), RFC-AITP-0011
+(Multi-hop Delegation) and RFC-AITP-0014 (A2A Agent Card Security
+Scheme) are **opt-in**: Draft normative text, outside v0.3 core
+conformance. RFC-AITP-0012 (Extensions) is
 **Reserved** — its contents are non-normative for `aitp/0.3` — and
 RFC-AITP-0013 (TCT Renewal Extension) is a **Planned** stub. Core
-conformance does not require implementing 0010–0013, but the
+conformance does not require implementing 0010–0014, but the
 [RFC-AITP-0012](/spec/extensions) §5–§6 constraints (ignore
 unknown keys inside `extensions`/`ext`; make no trust decision from
 `zk`/`tee`/`sd_grant`) and the `chain`-claim rejection above still apply.
@@ -189,6 +193,9 @@ implementations themselves: see
 [aitp-rs conformance](/implementation/conformance)
 and the
 [aitp-verifier-py conformance coverage](https://github.com/agentidentitytrustprotocol/aitp-verifier-py/blob/main/README.md#conformance-coverage).
+Whatever the runner, its output is a conformance report in one format, and
+badges are computed from it per claim: see
+[Conformance reports and badges](/docs/conformance-badge).
 
 `make validate` checks this repository itself (schemas, fixtures,
 known-answer values and documentation coherence); it runs locally and in
