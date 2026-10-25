@@ -112,6 +112,7 @@ adapter returns one.
   "result": {
     "implementation": "aitp-rs",
     "version": "<the adapter crate's version>",
+    "repository": "https://github.com/agentidentitytrustprotocol/aitp-rs",
     "supported_ops": ["verify_tct", "verify_grant_voucher", "verify_manifest", ...],
     "supported_features": ["pinned_key_identity", "oidc_identity"]
   }
@@ -121,6 +122,11 @@ adapter returns one.
 `aitp-rs-adapter` reports its own crate version
 (`env!("CARGO_PKG_VERSION")` in `crates/aitp-rs-adapter/src/lib.rs`), so
 the value tracks the workspace release.
+
+`implementation`, `version`, `repository` and `commit` are copied into a
+[conformance report](#conformance-report). Each one is optional in the
+reply: `implementation` and `version` default to `"unknown"`, and a report
+needs `repository` from the reply or `--implementation-repository`.
 
 The runner uses `supported_ops` and `supported_features` to skip fixtures
 the adapter cannot handle. A partial implementation declares only what it
@@ -267,7 +273,9 @@ How `aitp-conformance` implements those rules:
 aitp-conformance run --target <CMD> [--fixtures-dir <DIR>] [--filter <PAT>] \
                      [--tag <TAG>] [--feature <NAME>]... \
                      [--output text|json|tap] [--fail-fast] \
-                     [--profile v0.2|v0.1]
+                     [--profile v0.2|v0.1] \
+                     [--report <PATH> [--spec-commit <SHA>] [--spec-version <TAG>] \
+                      [--implementation-repository <URL>] [--implementation-commit <SHA>]]
 aitp-conformance list [--fixtures-dir <DIR>] [--tag <TAG>]
 aitp-conformance describe [--fixtures-dir <DIR>] <FIXTURE_ID>
 ```
@@ -292,7 +300,77 @@ Summary: <p> passed, <f> failed, <s> skipped of <N> fixtures
 ```
 
 `--output tap` prints TAP 13. `--output json` prints a JSON array with one
-object per fixture.
+object per fixture. `--report` additionally writes the spec's report
+document; see [Conformance report](#conformance-report).
+
+### Conformance report
+
+`--report <PATH>` writes a report valid against the spec's
+`aitp-conformance-report.schema.json` (`report_version` `"1"`, vendored at
+`tests/schemas/aitp-conformance-report.schema.json`). The spec's
+`docs/conformance-badge.md` defines it. It holds:
+
+- `implementation` and `runner`;
+- `spec` (`commit`, `version` and `protocol` `aitp/0.3`);
+- `fixtures_dir_digest` and the sorted `features_enabled`;
+- one `results` entry per non-reserved fixture, with `status`, `feature`
+  and `required_for_v0_2` copied from the fixture;
+- `totals` by status;
+- `gates`.
+
+The code is in `crates/aitp-conformance/src/runner/report.rs`.
+
+`gates` evaluates `"AITP v0.3"`, plus each extension claim whose feature
+is enabled (`AITP v0.3 pinned-admission`, `AITP v0.3 self-attestation`):
+
+- **`AITP v0.3`** passes only when every core fixture with
+  `required_for_v0_2: true` passes.
+- **An extension claim** passes only when every fixture with its feature
+  passes.
+
+Unlike the exit-code gate below, a core fixture skipped because an enabled
+draft feature negates it still blocks `AITP v0.3`. Make the core claim
+from a run without draft features. Draft fixtures gate no claim.
+
+The report's sources:
+
+- **`spec.commit`** is never guessed. It is `--spec-commit`, else the first
+  `SPEC_VERSION` file in or above `--fixtures-dir`, else `HEAD` of a clean
+  checkout of the spec repository whose `schemas/conformance` is
+  `--fixtures-dir`. Otherwise the run fails before it starts.
+- **`spec.version`** is `--spec-version`, else
+  `git describe --tags --match 'v[0-9]*'` of that commit in a spec
+  checkout.
+- **`fixtures_dir_digest`** is `sha256:` plus the SHA-256 of the
+  `sha256sum`-format listing of the top-level `*.json` files, sorted by
+  name in byte order. It equals
+  `cd <dir> && LC_ALL=C sha256sum -- *.json | sha256sum`.
+
+A report covers the whole corpus, so `--report` refuses `--filter`, `--tag`
+and `--fail-fast`. The exit code is unaffected: it reports run health (the
+gate below), and the claims live only in `gates`.
+
+The `conformance` CI job writes a report from a run with the two extension
+features and no draft features. It checks the report three ways:
+
+1. against the schema;
+2. that every gate passed;
+3. with the spec's
+   `scripts/check-conformance-report.py --fixtures-dir`, which recomputes
+   the totals, the gates and the digest.
+
+The job uploads the report as the `conformance-report` artifact. To
+reproduce it locally:
+
+```bash
+./target/debug/aitp-conformance run \
+  --target ./target/debug/aitp-rs-adapter \
+  --fixtures-dir ../agentidentitytrustprotocol/schemas/conformance \
+  --feature aitp-pinned-admission --feature aitp-self-attestation \
+  --report conformance-report.json
+python3 ../agentidentitytrustprotocol/scripts/check-conformance-report.py \
+  conformance-report.json --fixtures-dir ../agentidentitytrustprotocol/schemas/conformance
+```
 
 ## Why not gRPC for the adapter protocol
 
@@ -391,20 +469,20 @@ them.
 
 ### Summary
 
-These counts are **at pin `deee6a9`** (`aitp/0.3`, spec release `v0.3.1-draft`), the spec commit in
+These counts are **at pin `8538bf1`** (`aitp/0.3`, spec release `v0.3.2-draft` plus the S2.1 freeze and S3.1 report schema; no fixture changes), the spec commit in
 [`tests/schemas/SPEC_VERSION`](https://github.com/agentidentitytrustprotocol/aitp-rs/blob/main/tests/schemas/SPEC_VERSION). They are
 the only place in these docs where fixture counts appear. Other pages link
 here.
 
 | Tier | Fixtures | Strict run (no `--feature`) | With all four features |
 |---|---|---|---|
-| `core`, `required_for_v0_2: true` (the `aitp/0.3` core tier) | 82 | 82 PASS | 81 PASS, 1 SKIP (`del-007`) |
+| `core`, `required_for_v0_2: true` (the `aitp/0.3` core tier) | 85 | 85 PASS | 84 PASS, 1 SKIP (`del-007`) |
 | `core`, frozen in the v0.1 shape (`del-004`; `required_for_v0_1: true`, `required_for_v0_2: false`) | 1 | PASS | SKIP |
 | `draft`: session bundle (`experimental-session-bundle`) | 8 | SKIP | PASS |
 | `draft`: multi-hop delegation (`experimental-multihop-delegation`) | 6 | SKIP | PASS |
 | `extension`: pinned-key admission (`aitp-pinned-admission`) | 8 | SKIP | PASS |
 | `extension`: self-attestation (`aitp-self-attestation`) | 3 | SKIP | PASS |
-| **Total** | **108** | **83 pass / 0 fail / 25 skip** | **106 pass / 0 fail / 2 skip** |
+| **Total** | **111** | **86 pass / 0 fail / 25 skip** | **109 pass / 0 fail / 2 skip** |
 
 The section and gate keep their `v0.2` names on purpose. The spec keeps the
 fixture key `required_for_v0_2` for `aitp/0.3` ("the key keeps its v0.2
@@ -432,12 +510,12 @@ the pinned commit:
 
 ```bash
 cargo build -p aitp-rs-adapter -p aitp-conformance
-# Strict: 83 pass / 0 fail / 25 skip at the pin. The `--profile v0.1`
+# Strict: 86 pass / 0 fail / 25 skip at the pin. The `--profile v0.1`
 # counts are the same; only the gate's required flag differs.
 ./target/debug/aitp-conformance run \
   --target ./target/debug/aitp-rs-adapter \
   --fixtures-dir ../agentidentitytrustprotocol/schemas/conformance
-# Opt-in (draft RFCs and extensions): 106 pass / 0 fail / 2 skip at the pin.
+# Opt-in (draft RFCs and extensions): 109 pass / 0 fail / 2 skip at the pin.
 # The `conformance` CI job runs both of these.
 ./target/debug/aitp-conformance run \
   --target ./target/debug/aitp-rs-adapter \
@@ -470,8 +548,9 @@ allowlist: every other required fixture must pass.
 
 The gate is `check_gate` in `crates/aitp-conformance/src/runner/gate.rs`,
 called from `run()` in `crates/aitp-conformance/src/main.rs`. The
-`conformance` CI job runs the corpus twice under the default profile:
-strict, and with all four features.
+`conformance` CI job runs the corpus under the default profile strict and
+with all four features, then writes the [report](#conformance-report) from
+a run with the two extensions.
 
 ### Fixtures by area
 
@@ -497,10 +576,12 @@ is set, as explained above.
 | TCT unknown claims: RFC-AITP-0005 §7.2 step 1 | `tct-011`, `tct-012` |
 | Grant voucher: RFC-AITP-0005 §8 | `vch-001`, `vch-002` |
 | Revocation: RFC-AITP-0008 | `rev-001`–`rev-003`, `rev-009`, `rev-010` |
+| A snapshot signed by a third party is discarded: RFC-AITP-0008 §1.5, §3.1 | `rev-011` |
 | Revocation lookup ordering: RFC-AITP-0008 §3.3 | `rev-004` |
 | Revocation snapshot unknown members: RFC-AITP-0008 §1.5, RFC-AITP-0001 §7 | `rev-005`, `rev-006` |
 | Revocation snapshot structural validation: RFC-AITP-0008 §1.5 | `rev-007`, `rev-008` |
 | A discarded snapshot is absent and `revocation_policy.mode` decides: RFC-AITP-0008 §1.5, §3.1 | `tct-022` (`fail_closed`), `tct-023` (`fail_open`) |
+| No revocation source: the default is `fail_closed`, `fail_open` is explicit: RFC-AITP-0008 §3.1 | `tct-024` (default `fail_closed`), `tct-025` (`fail_open`) |
 | Delegation (voucher-based): RFC-AITP-0006 | `del-001`, `del-003`, `del-005`, `del-006`, `del-007`; `del-004` (v0.1 shape) |
 | The verifier's own deny list fails verification: RFC-AITP-0006 §4 step 7 | `del-008` |
 | Session Trust Bundle (draft, `experimental-session-bundle`): RFC-AITP-0010 | `bundle-001`–`bundle-008` |
