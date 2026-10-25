@@ -1,0 +1,14 @@
+[
+  {
+    "id": "aitp-rs",
+    "name": "aitp-rs",
+    "description": "Rust",
+    "repository": "agentidentitytrustprotocol/aitp-rs"
+  },
+  {
+    "id": "absent",
+    "name": "absent",
+    "description": "No report yet",
+    "repository": "example/absent"
+  }
+]

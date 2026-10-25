@@ -104,10 +104,19 @@ jobs:
           chmod +x scripts/sync-content.sh
           ./scripts/sync-content.sh
 
+      # Each implementation's newest conformance report from its main CI
+      # (data/conformance/implementations.json), checked like a PR would be.
+      - name: Fetch conformance reports
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+        run: |
+          ./scripts/fetch-conformance-reports.sh
+          ./scripts/check-conformance-reports.sh agentidentitytrustprotocol-repo
+
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git add -N content data public && git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       # The sync PR does not reliably carry its own CI (a GITHUB_TOKEN-authored
       # PR does not trigger workflows), so prove the content builds here rather
