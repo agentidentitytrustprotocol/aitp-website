@@ -1,0 +1,22 @@
+[
+  {
+    "file": "hello-world.sh",
+    "repo": "aitp-rs",
+    "info": "bash readme-smoke"
+  },
+  {
+    "file": "install.sh",
+    "repo": "aitp-rs",
+    "info": "bash"
+  },
+  {
+    "file": "verifier-ts-install.sh",
+    "repo": "aitp-verifier-ts",
+    "info": "sh"
+  },
+  {
+    "file": "verifier-ts-usage.js",
+    "repo": "aitp-verifier-ts",
+    "info": "js"
+  }
+]

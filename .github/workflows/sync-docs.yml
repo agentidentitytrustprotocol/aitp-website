@@ -94,6 +94,15 @@ jobs:
             docs
             README.md
 
+      # README only: the quickstart's TypeScript verifier blocks.
+      - name: Checkout TypeScript verifier repo
+        uses: actions/checkout@v7
+        with:
+          repository: agentidentitytrustprotocol/aitp-verifier-ts
+          path: aitp-verifier-ts-repo
+          sparse-checkout: |
+            README.md
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
