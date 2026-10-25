@@ -15,6 +15,7 @@ const footerLinks = [
   {
     title: 'Build',
     links: [
+      { label: 'Quickstart', href: '/quickstart' },
       { label: 'SDKs', href: '/sdks' },
       { label: 'Implementation', href: '/implementation' },
       { label: 'Conformance', href: '/conformance' },

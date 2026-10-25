@@ -77,10 +77,16 @@ export function Hero() {
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
+              href="/quickstart"
+              className="inline-flex items-center rounded-lg bg-fd-primary px-6 py-3 text-sm font-semibold text-fd-primary-foreground shadow-[0_0_16px_rgba(59,130,246,0.25)] transition-all duration-200 hover:shadow-[0_0_28px_rgba(59,130,246,0.4)]"
+            >
+              Quickstart
+            </Link>
+            <Link
               href="/docs"
               className="inline-flex items-center rounded-lg border border-fd-primary/20 bg-fd-background px-6 py-3 text-sm font-semibold text-fd-foreground shadow-[0_0_12px_rgba(59,130,246,0.06)] transition-all duration-200 hover:border-fd-primary/50 hover:shadow-[0_0_24px_rgba(59,130,246,0.2)]"
             >
-              Get Started
+              Docs
             </Link>
             <Link
               href="/spec"

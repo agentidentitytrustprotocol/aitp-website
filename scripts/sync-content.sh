@@ -130,6 +130,10 @@ git -C "$SPEC_DIR" ls-remote --tags --refs origin 'v*' \
   | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().split(), indent=2))' \
   > "$REPO_ROOT/data/spec-tags.json"
 
+# ─── README code blocks → data/quickstart/ (see data/quickstart/blocks.json) ─
+echo "Syncing quickstart blocks..."
+python3 "$SCRIPT_DIR/sync-quickstart.py"
+
 # ─── aitp-rs → content/implementation/ ───────────────────────────────────
 if [ -d "$RS_DIR" ]; then
   echo "Syncing implementation (aitp-rs)..."

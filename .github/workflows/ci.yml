@@ -31,6 +31,9 @@ jobs:
           SPEC_DIR="$RUNNER_TEMP/spec" npm run check-schemas
       # Badge rule 2 (spec docs/conformance-badge.md): every committed report
       # passes the spec's report checker against the fixtures at its spec.commit.
+      # The quickstart's code blocks must equal their source READMEs on main.
+      - name: Check quickstart blocks against the source READMEs
+        run: python3 scripts/sync-quickstart.py --check
       - name: Check committed conformance reports
         run: ./scripts/check-conformance-reports.sh "$RUNNER_TEMP/spec"
       # A post's review window must equal the dates its Discussion states.
