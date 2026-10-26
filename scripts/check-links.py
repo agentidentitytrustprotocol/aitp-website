@@ -16,7 +16,7 @@ import sys
 
 CONTENT = "content"
 # Standalone pages that are React, not MDX, so they have no file under content/.
-EXTRA_ROUTES = {"/", "/community", "/e2e-flow", "/news", "/schema/v0.3", "/conformance", "/quickstart"}
+EXTRA_ROUTES = {"/", "/community", "/e2e-flow", "/news", "/schema/v0.3", "/conformance", "/quickstart", "/ext/a2a/v1"}
 LINK = re.compile(r'!?\[[^\]]*\]\(([^)\s]+?)(?:\s+"[^"]*")?\)')
 FENCE = re.compile(r'^\s*(```|~~~)')
 

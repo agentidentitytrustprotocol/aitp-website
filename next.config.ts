@@ -18,6 +18,14 @@ const config = {
           { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
         ],
       },
+      {
+        // The A2A extension URI of RFC-AITP-0014 (app/ext/a2a/v1). It serves
+        // the RFC in place; the spec page is the canonical copy.
+        source: '/ext/a2a/v1',
+        headers: [
+          { key: 'Link', value: '<https://agentidentitytrustprotocol.io/spec/a2a-agent-card>; rel="canonical"' },
+        ],
+      },
     ];
   },
 };

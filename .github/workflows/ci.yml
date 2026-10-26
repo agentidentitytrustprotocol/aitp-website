@@ -43,4 +43,4 @@ jobs:
         run: npm run check-review-dates
       - run: npm run typecheck
       - run: npm run build
-      - run: npm run check-schema-headers
+      - run: npm run check-served-routes

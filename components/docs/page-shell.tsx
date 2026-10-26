@@ -13,6 +13,8 @@ interface PageShellProps {
   editUrl?: string;
   tree?: Root;
   currentUrl?: string;
+  /** Rendered between the page header and the body. */
+  banner?: ReactNode;
   children: ReactNode;
 }
 
@@ -23,6 +25,7 @@ export function PageShell({
   editUrl,
   tree,
   currentUrl,
+  banner,
   children,
 }: PageShellProps) {
   return (
@@ -38,6 +41,8 @@ export function PageShell({
             </p>
           )}
         </header>
+
+        {banner}
 
         <div className="prose prose-neutral max-w-none dark:prose-invert">
           {children}
