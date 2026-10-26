@@ -14,7 +14,7 @@
     "postinstall": "fumadocs-mdx",
     "check-links": "python3 scripts/check-links.py",
     "check-schemas": "python3 scripts/sync-schemas.py \"${SPEC_DIR:-../agentidentitytrustprotocol}\" --check",
-    "check-schema-headers": "python3 scripts/check-schema-headers.py",
+    "check-served-routes": "python3 scripts/check-served-routes.py",
     "test": "vitest run",
     "check-review-dates": "python3 scripts/check-review-dates.py"
   },

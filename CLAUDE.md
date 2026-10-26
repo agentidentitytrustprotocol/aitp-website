@@ -81,6 +81,16 @@ use Fumadocs `DocsLayout`. Shared nav in `lib/nav-links.tsx`; the landing
 sections live in `components/` (`hero`, `protocol-diagram`, `feature-cards`,
 `ecosystem-section`, `run-section`, `navbar`, `footer`, `logo`).
 
+### Extension URIs
+
+`/ext/a2a/v1` is the A2A extension URI RFC-AITP-0014 publishes
+(`app/ext/a2a/v1/page.tsx`). It serves the synced `content/spec/a2a-agent-card.mdx`
+in place (200, never a redirect: A2A clients compare the URI they fetched), sends
+`Link: <…/spec/a2a-agent-card>; rel="canonical"` (`next.config.ts`), and shows a
+stage/version banner parsed from the RFC header (`lib/rfc-header.ts`). The URI is
+permanent: a breaking RFC-0014 change takes `/ext/a2a/v2`. CI checks the live
+response in `scripts/check-served-routes.py`.
+
 ### SEO
 
 - `app/sitemap.ts` — dynamic from 7 sources (console excluded).
