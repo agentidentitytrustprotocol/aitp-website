@@ -22,5 +22,13 @@
     "repository": "agentidentitytrustprotocol/aitp-verifier-ts",
     "artifact": "conformance-report",
     "file": "conformance.json"
+  },
+  {
+    "id": "aitp-verifier-go",
+    "name": "aitp-verifier-go",
+    "description": "Go verifier (same author as aitp-rs)",
+    "repository": "agentidentitytrustprotocol/aitp-verifier-go",
+    "artifact": "conformance-report",
+    "file": "conformance.json"
   }
 ]
