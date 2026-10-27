@@ -122,11 +122,11 @@ Per the [RFC index](/spec), RFCs 0001–0009 are in **Review**
 and RFCs 0010, 0011 and 0014 are **Draft** (see
 [governance/RFC-PROCESS.md](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/governance/RFC-PROCESS.md) for the
 lifecycle). RFC-AITP-0010 (Session Trust Bundle), RFC-AITP-0011
-(Multi-hop Delegation) and RFC-AITP-0014 (A2A Agent Card Security
-Scheme) are **opt-in**: Draft normative text, outside v0.3 core
-conformance. RFC-AITP-0012 (Extensions) is
-**Reserved** — its contents are non-normative for `aitp/0.3` — and
-RFC-AITP-0013 (TCT Renewal Extension) is a **Planned** stub. Core
+(Multi-hop Delegation), RFC-AITP-0013 (TCT Renewal Extension) and
+RFC-AITP-0014 (A2A Agent Card Security Scheme) are **opt-in**: Draft
+normative text, outside v0.3 core conformance. RFC-AITP-0012
+(Extensions) is **Reserved**: its contents are non-normative for
+`aitp/0.3`. Core
 conformance does not require implementing 0010–0014, but the
 [RFC-AITP-0012](/spec/extensions) §5–§6 constraints (ignore
 unknown keys inside `extensions`/`ext`; make no trust decision from
@@ -203,3 +203,65 @@ CI. Adding a fixture? Read the contract in
 [`schemas/conformance/README.md`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/README.md#fixture-input-validation).
 The documentation-coherence stages are described in the header of
 [`scripts/check-doc-coherence.sh`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/scripts/check-doc-coherence.sh).
+
+---
+
+## Implementations wanted
+
+AITP needs an implementation written by someone other than its author.
+
+**Why.** AITP 1.0 needs at least two implementations that pass the core
+conformance tier and interoperate end-to-end, and at least one of them
+must be by an author with no commit access to aitp-rs
+([VERSIONING.md § v1.0 criteria](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/VERSIONING.md#v10-criteria),
+criterion 3). That criterion is unmet. Every implementation listed in
+[`docs/ecosystem.md`](/docs/ecosystem) (Rust, Python, TypeScript and Go) is
+by the same author. They share no code, but two programs by one person
+can share one misreading of the RFCs. Only an implementation by a
+different author can find the places where the text is ambiguous.
+
+**What passing means.** Your runner emits a conformance report, and the
+`AITP v0.3` claim passes when every `required_for_core` fixture has the
+outcome `pass`. A skipped core fixture blocks the claim. The report
+format, the claim rules and the badge are defined in
+[Conformance reports and badges](/docs/conformance-badge). A report is
+trusted because anyone can reproduce it from the spec commit, the fixture
+digest and a public CI run.
+
+**Languages with no implementation yet.** Java, C#, Swift, and any other
+language not listed above. A Rust, Python, TypeScript or Go implementation
+by a different author counts just as much: the criterion is about who
+wrote it, not which language it is in.
+
+### A good first implementation
+
+You don't need a full agent stack. Start with a verification core: the
+part that takes an artifact and returns success or a specific error code.
+
+1. **Read the core RFCs** in the order [above](#read-in-this-order), and
+   reproduce the [known-answer vectors](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/known-answer/README.md)
+   first. They pin the exact bytes every signature covers, so they catch
+   canonicalization and encoding mistakes before any fixture does.
+2. **Implement the core operations.** The core fixtures drive the
+   operations marked "Required for core" in
+   [`schemas/conformance/ADAPTER.md` § Fixture operations](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/ADAPTER.md#fixture-operations).
+   Most are `verify_*` operations. The rest are the few proof-of-possession
+   and handshake steps the core fixtures exercise.
+3. **Write an adapter.** [`ADAPTER.md`](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/ADAPTER.md)
+   (`adapter-protocol: 1`) describes the NDJSON protocol between a
+   conformance runner and your implementation: the messages, the
+   operations, SKIP semantics and how claims are gated. You do not need
+   to read another implementation's source to write one.
+4. **Run the core tier.** The
+   [fixture summary](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/blob/main/schemas/conformance/README.md#fixture-summary) gives
+   the count of each tier. Only the `core` tier gates the `AITP v0.3`
+   claim; run it with no draft features enabled. The `extension` and
+   `draft` tiers are optional.
+5. **Publish the report** from a public CI run, and open an issue or a
+   Discussion with the link so the implementation can be listed in
+   [`docs/ecosystem.md`](/docs/ecosystem).
+
+Questions about the text are welcome on
+[Discussions](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/discussions)
+while you build. A place where two careful readers disagree is exactly
+what this effort is meant to find.
