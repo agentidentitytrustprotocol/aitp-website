@@ -8,7 +8,7 @@ const fixtures = (name: string) => join(__dirname, '__fixtures__', name);
 describe('loadMatrix', () => {
   it('loads the committed reports', () => {
     const rows = loadMatrix();
-    expect(rows.map((r) => r.impl.id)).toEqual(['aitp-rs', 'aitp-verifier-py', 'aitp-verifier-ts']);
+    expect(rows.map((r) => r.impl.id)).toEqual(['aitp-rs', 'aitp-verifier-py', 'aitp-verifier-ts', 'aitp-verifier-go']);
     for (const row of rows) expect(row.report).not.toBeNull();
   });
 
