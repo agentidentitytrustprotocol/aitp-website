@@ -152,6 +152,7 @@ jobs:
           npm run build
 
       - name: Create PR with updated content
+        id: cpr
         if: steps.changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
@@ -167,6 +168,16 @@ jobs:
             - **Console** (`aitp-ui-console`) — console docs (noindex)
           branch: automated/sync-docs
           delete-branch: true
+
+      # The shared auto-merge workflow only arms Dependabot PRs, so sync PRs
+      # used to sit green and unmerged. Arm native auto-merge here: it still
+      # waits for the required `build` check.
+      - name: Enable auto-merge on the sync PR
+        if: steps.cpr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          PR: ${{ steps.cpr.outputs.pull-request-number }}
+        run: gh pr merge --auto --squash "$PR"
 
       # Seven weeks of daily failures went unnoticed once (#30). A failed sync
       # means the published spec may be silently wrong, so say so somewhere a
