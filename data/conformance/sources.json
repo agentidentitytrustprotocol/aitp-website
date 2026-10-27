@@ -1,14 +1,14 @@
 {
   "aitp-rs": {
-    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-rs/actions/runs/40240852805"
+    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-rs/actions/runs/40573192927"
   },
   "aitp-verifier-go": {
-    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-verifier-go/actions/runs/40427427771"
+    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-verifier-go/actions/runs/40541597857"
   },
   "aitp-verifier-py": {
-    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-verifier-py/actions/runs/40244167238"
+    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-verifier-py/actions/runs/40541537152"
   },
   "aitp-verifier-ts": {
-    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-verifier-ts/actions/runs/40243630266"
+    "ci_run_url": "https://github.com/agentidentitytrustprotocol/aitp-verifier-ts/actions/runs/40541556766"
   }
 }
