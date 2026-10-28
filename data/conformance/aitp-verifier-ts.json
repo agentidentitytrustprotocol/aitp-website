@@ -2,20 +2,20 @@
   "report_version": "1",
   "implementation": {
     "name": "aitp-verifier-ts",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-verifier-ts",
-    "commit": "437d3a32336506e43307e12e73e1fe2469b72e34"
+    "commit": "e05148da34e69e048372fe9cae58540e0b72bd71"
   },
   "runner": {
     "name": "aitp-conformance",
     "version": "0.23.0"
   },
   "spec": {
-    "commit": "8dc2a5c69cdcaa0e74e4d7452e0b792b71e391fc",
-    "version": "v0.3.2-draft",
+    "commit": "af9c409f93777624db1626667f0d26f7630bb880",
+    "version": "v0.3.3-draft",
     "protocol": "aitp/0.3"
   },
-  "fixtures_dir_digest": "sha256:7d813d696b7e0099c5de166d38f1db56f99686f1341b32720823f6d9c0b6109b",
+  "fixtures_dir_digest": "sha256:de8e61b112f9f389ad8b29b27de1073ff23247efca44b70a735b729e5bcf793a",
   "features_enabled": [],
   "results": [
     {
@@ -136,7 +136,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 13
+      "duration_ms": 12
     },
     {
       "id": "del-002",
@@ -144,7 +144,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 8
+      "duration_ms": 7
     },
     {
       "id": "del-003",
@@ -248,7 +248,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "env-002",
@@ -336,7 +336,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-002",
@@ -344,7 +344,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 2
     },
     {
       "id": "id-003",
@@ -480,7 +480,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 3
     },
     {
       "id": "id-019",
@@ -672,7 +672,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 4
     },
     {
       "id": "mh-006",
@@ -720,7 +720,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 4
     },
     {
       "id": "mh-012",
@@ -745,6 +745,14 @@
       "required_for_core": true,
       "outcome": "pass",
       "duration_ms": 3
+    },
+    {
+      "id": "mh-015",
+      "status": "core",
+      "feature": null,
+      "required_for_core": true,
+      "outcome": "pass",
+      "duration_ms": 0
     },
     {
       "id": "mh-success-001",
@@ -840,7 +848,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 2
     },
     {
       "id": "tct-002",
@@ -880,7 +888,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 5
+      "duration_ms": 4
     },
     {
       "id": "tct-007",
@@ -888,7 +896,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 2
     },
     {
       "id": "tct-008",
@@ -976,7 +984,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "tct-019",
@@ -1085,7 +1093,7 @@
   ],
   "totals": {
     "core": {
-      "pass": 95,
+      "pass": 96,
       "fail": 0,
       "skip": 0,
       "excluded_by_role": 0
@@ -1110,5 +1118,5 @@
       "criteria": "core-required-all-pass"
     }
   ],
-  "generated_at": "2026-10-25T23:12:30Z"
+  "generated_at": "2026-10-27T16:32:28Z"
 }
