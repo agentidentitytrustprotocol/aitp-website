@@ -4,14 +4,14 @@
     "name": "aitp-rs",
     "version": "0.23.0",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-rs",
-    "commit": "758932315741a009c0e068ddb23096b0fa847b7b"
+    "commit": "bb883e665f7ff37b64f4105b0f34d992f773633e"
   },
   "runner": {
     "name": "aitp-conformance",
     "version": "0.23.0"
   },
   "spec": {
-    "commit": "83e7900d73f5e2b9b611fe2bd3d7d2e7e7f27935",
+    "commit": "c11a2c4a7ce4b6126d550ef9b68008d05b22a169",
     "version": "v0.3.4-draft",
     "protocol": "aitp/0.3"
   },
@@ -139,7 +139,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 43
     },
     {
       "id": "del-002",
@@ -147,7 +147,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 59
+      "duration_ms": 54
     },
     {
       "id": "del-003",
@@ -155,7 +155,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 43
     },
     {
       "id": "del-004",
@@ -171,7 +171,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 43
     },
     {
       "id": "del-006",
@@ -179,7 +179,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 48
+      "duration_ms": 43
     },
     {
       "id": "del-007",
@@ -187,7 +187,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 3
+      "duration_ms": 2
     },
     {
       "id": "del-008",
@@ -195,7 +195,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 15
+      "duration_ms": 13
     },
     {
       "id": "del-mh-001",
@@ -251,7 +251,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "env-002",
@@ -259,7 +259,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "env-003",
@@ -283,7 +283,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 15
+      "duration_ms": 13
     },
     {
       "id": "env-006",
@@ -299,7 +299,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 10
     },
     {
       "id": "env-008",
@@ -307,7 +307,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 10
     },
     {
       "id": "env-009",
@@ -315,7 +315,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 10
     },
     {
       "id": "env-010",
@@ -339,7 +339,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 33
     },
     {
       "id": "id-002",
@@ -347,7 +347,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 33
     },
     {
       "id": "id-003",
@@ -355,7 +355,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 38
+      "duration_ms": 34
     },
     {
       "id": "id-004",
@@ -363,7 +363,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 33
     },
     {
       "id": "id-005",
@@ -371,7 +371,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 37
+      "duration_ms": 33
     },
     {
       "id": "id-006",
@@ -379,7 +379,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 38
+      "duration_ms": 33
     },
     {
       "id": "id-007",
@@ -387,7 +387,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 26
+      "duration_ms": 23
     },
     {
       "id": "id-008",
@@ -395,7 +395,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 26
+      "duration_ms": 23
     },
     {
       "id": "id-009",
@@ -403,7 +403,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 50
+      "duration_ms": 44
     },
     {
       "id": "id-010",
@@ -411,7 +411,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 51
+      "duration_ms": 44
     },
     {
       "id": "id-011",
@@ -419,7 +419,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 41
+      "duration_ms": 35
     },
     {
       "id": "id-011b",
@@ -427,7 +427,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 23
     },
     {
       "id": "id-012",
@@ -435,7 +435,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 35
     },
     {
       "id": "id-013",
@@ -443,7 +443,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 45
+      "duration_ms": 42
     },
     {
       "id": "id-014",
@@ -451,7 +451,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "id-015",
@@ -467,7 +467,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 43
     },
     {
       "id": "id-017",
@@ -475,7 +475,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 43
     },
     {
       "id": "id-018",
@@ -483,7 +483,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 23
     },
     {
       "id": "id-019",
@@ -491,7 +491,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 21
     },
     {
       "id": "id-020",
@@ -499,7 +499,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 21
     },
     {
       "id": "id-021",
@@ -507,7 +507,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 24
+      "duration_ms": 21
     },
     {
       "id": "id-022",
@@ -515,7 +515,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 44
     },
     {
       "id": "id-023",
@@ -523,7 +523,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 57
+      "duration_ms": 50
     },
     {
       "id": "id-024",
@@ -587,7 +587,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-002",
@@ -595,7 +595,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-003",
@@ -603,7 +603,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-004",
@@ -611,7 +611,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-005",
@@ -619,7 +619,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 21
     },
     {
       "id": "man-006",
@@ -627,7 +627,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "man-007",
@@ -635,7 +635,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 21
     },
     {
       "id": "mh-001",
@@ -651,7 +651,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 23
     },
     {
       "id": "mh-003",
@@ -659,7 +659,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 15
+      "duration_ms": 13
     },
     {
       "id": "mh-004",
@@ -667,7 +667,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 26
+      "duration_ms": 23
     },
     {
       "id": "mh-005",
@@ -675,7 +675,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "mh-006",
@@ -683,7 +683,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 14
+      "duration_ms": 12
     },
     {
       "id": "mh-007",
@@ -691,7 +691,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 14
+      "duration_ms": 13
     },
     {
       "id": "mh-008",
@@ -699,7 +699,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 24
+      "duration_ms": 22
     },
     {
       "id": "mh-009",
@@ -707,7 +707,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 23
     },
     {
       "id": "mh-010",
@@ -715,7 +715,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 43
     },
     {
       "id": "mh-011",
@@ -723,7 +723,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 43
     },
     {
       "id": "mh-012",
@@ -731,7 +731,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 44
     },
     {
       "id": "mh-013",
@@ -739,7 +739,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 43
     },
     {
       "id": "mh-014",
@@ -747,7 +747,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 33
     },
     {
       "id": "mh-015",
@@ -755,7 +755,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "mh-success-001",
@@ -763,7 +763,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 44
     },
     {
       "id": "ren-001",
@@ -867,7 +867,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-002",
@@ -875,7 +875,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-003",
@@ -883,7 +883,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-004",
@@ -891,7 +891,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-005",
@@ -907,7 +907,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-007",
@@ -923,7 +923,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-009",
@@ -931,7 +931,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "rev-010",
@@ -939,7 +939,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "rev-011",
@@ -947,7 +947,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 10
     },
     {
       "id": "tct-002",
@@ -955,7 +955,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-003",
@@ -963,7 +963,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-004",
@@ -971,7 +971,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 24
+      "duration_ms": 22
     },
     {
       "id": "tct-005",
@@ -979,7 +979,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-006",
@@ -987,7 +987,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 14
+      "duration_ms": 13
     },
     {
       "id": "tct-007",
@@ -1003,7 +1003,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "tct-009",
@@ -1035,7 +1035,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-013",
@@ -1059,7 +1059,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-016",
@@ -1067,7 +1067,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-017",
@@ -1075,7 +1075,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "tct-018",
@@ -1083,7 +1083,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-019",
@@ -1091,7 +1091,7 @@
       "feature": "aitp-self-attestation",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-020",
@@ -1099,7 +1099,7 @@
       "feature": "aitp-self-attestation",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 10
     },
     {
       "id": "tct-021",
@@ -1107,7 +1107,7 @@
       "feature": "aitp-self-attestation",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "tct-022",
@@ -1115,7 +1115,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 22
+      "duration_ms": 20
     },
     {
       "id": "tct-023",
@@ -1123,7 +1123,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 22
+      "duration_ms": 20
     },
     {
       "id": "tct-024",
@@ -1131,7 +1131,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 10
     },
     {
       "id": "tct-025",
@@ -1139,7 +1139,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 10
     },
     {
       "id": "tct-026",
@@ -1147,7 +1147,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "tct-027",
@@ -1155,7 +1155,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 21
     },
     {
       "id": "tct-028",
@@ -1163,7 +1163,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 34
+      "duration_ms": 31
     },
     {
       "id": "tct-029",
@@ -1171,7 +1171,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 34
+      "duration_ms": 31
     },
     {
       "id": "vch-001",
@@ -1179,7 +1179,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "vch-002",
@@ -1187,7 +1187,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     }
   ],
   "totals": {
@@ -1227,5 +1227,5 @@
       "criteria": "feature-all-pass"
     }
   ],
-  "generated_at": "2026-10-28T07:36:38Z"
+  "generated_at": "2026-10-28T08:28:39Z"
 }
