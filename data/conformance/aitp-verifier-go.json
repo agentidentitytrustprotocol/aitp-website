@@ -4,11 +4,11 @@
     "name": "aitp-verifier-go",
     "version": "0.1.1",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-verifier-go",
-    "commit": "9c6aa3bfc949b4470b9dcd63774c59152e38a9e6"
+    "commit": "86edc96503c324f95646d54fa3c3d0d03df2bd27"
   },
   "runner": {
     "name": "aitp-conformance",
-    "version": "0.23.0"
+    "version": "0.24.0"
   },
   "spec": {
     "commit": "8c6725bf33955748d0bec03684cae7d3b358d33a",
@@ -192,7 +192,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "del-mh-001",
@@ -472,7 +472,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "id-018",
@@ -688,7 +688,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "mh-008",
@@ -992,7 +992,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "tct-008",
@@ -1214,5 +1214,5 @@
       "criteria": "core-required-all-pass"
     }
   ],
-  "generated_at": "2026-10-31T17:58:53Z"
+  "generated_at": "2026-10-31T20:02:05Z"
 }
