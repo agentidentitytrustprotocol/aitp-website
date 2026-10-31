@@ -4,14 +4,14 @@
     "name": "aitp-verifier-go",
     "version": "0.1.1",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-verifier-go",
-    "commit": "1fd69dfa52653193d1f640f3dc1fb00877395459"
+    "commit": "8514f89c71a37ce7fe358a06c77f5ceb5b5aff3c"
   },
   "runner": {
     "name": "aitp-conformance",
     "version": "0.23.0"
   },
   "spec": {
-    "commit": "73dd6ebe9f1965decae90a400fad8048d5e8a6e3",
+    "commit": "8c6725bf33955748d0bec03684cae7d3b358d33a",
     "version": "v0.3.4-draft",
     "protocol": "aitp/0.3"
   },
@@ -400,7 +400,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "id-010",
@@ -672,7 +672,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "mh-006",
@@ -728,7 +728,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "mh-013",
@@ -992,7 +992,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 0
+      "duration_ms": 1
     },
     {
       "id": "tct-008",
@@ -1214,5 +1214,5 @@
       "criteria": "core-required-all-pass"
     }
   ],
-  "generated_at": "2026-10-31T05:21:06Z"
+  "generated_at": "2026-10-31T07:27:48Z"
 }
