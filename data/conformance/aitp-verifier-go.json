@@ -4,18 +4,18 @@
     "name": "aitp-verifier-go",
     "version": "0.1.1",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-verifier-go",
-    "commit": "e215aef812a02b1ce51e7ae1705d47de2a3da62d"
+    "commit": "158bc4db65fa471e3e52d520c568b20db26071d6"
   },
   "runner": {
     "name": "aitp-conformance",
     "version": "0.23.0"
   },
   "spec": {
-    "commit": "af9c409f93777624db1626667f0d26f7630bb880",
-    "version": "v0.3.3-draft",
+    "commit": "73dd6ebe9f1965decae90a400fad8048d5e8a6e3",
+    "version": "v0.3.4-draft",
     "protocol": "aitp/0.3"
   },
-  "fixtures_dir_digest": "sha256:de8e61b112f9f389ad8b29b27de1073ff23247efca44b70a735b729e5bcf793a",
+  "fixtures_dir_digest": "sha256:33f02dbe13f860be3b371526fb43880460bb027de6e6c4d813a2fd8799e13b4d",
   "features_enabled": [],
   "results": [
     {
@@ -144,7 +144,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "del-003",
@@ -152,7 +152,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "del-004",
@@ -192,7 +192,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "del-mh-001",
@@ -408,7 +408,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-011",
@@ -416,7 +416,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-011b",
@@ -432,7 +432,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-013",
@@ -472,7 +472,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "id-018",
@@ -520,7 +520,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 4
+      "duration_ms": 3
     },
     {
       "id": "id-024",
@@ -672,7 +672,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "mh-006",
@@ -761,6 +761,102 @@
       "required_for_core": true,
       "outcome": "pass",
       "duration_ms": 1
+    },
+    {
+      "id": "ren-001",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-002",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-003",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-004",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-005",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-006",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-007",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-008",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-009",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-010",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-011",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
+    },
+    {
+      "id": "ren-012",
+      "status": "draft",
+      "feature": "experimental-renewal",
+      "required_for_core": false,
+      "outcome": "skip",
+      "reason": "non-core fixture (status=Draft); requires feature `experimental-renewal`"
     },
     {
       "id": "rev-001",
@@ -888,7 +984,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "tct-007",
@@ -896,7 +992,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 0
     },
     {
       "id": "tct-008",
@@ -1107,7 +1203,7 @@
     "draft": {
       "pass": 0,
       "fail": 0,
-      "skip": 27,
+      "skip": 39,
       "excluded_by_role": 0
     }
   },
@@ -1118,5 +1214,5 @@
       "criteria": "core-required-all-pass"
     }
   ],
-  "generated_at": "2026-10-27T16:34:56Z"
+  "generated_at": "2026-10-31T05:06:09Z"
 }
