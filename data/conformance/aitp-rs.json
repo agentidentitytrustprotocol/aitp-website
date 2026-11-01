@@ -4,7 +4,7 @@
     "name": "aitp-rs",
     "version": "0.24.1",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-rs",
-    "commit": "19d1de9b3305911bb1bdb83744c91c027b7c8b11"
+    "commit": "0ea9f7230ceee6a8560b8a025544bc0d9ff84517"
   },
   "runner": {
     "name": "aitp-conformance",
@@ -139,7 +139,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 48
     },
     {
       "id": "del-002",
@@ -147,7 +147,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 58
+      "duration_ms": 59
     },
     {
       "id": "del-003",
@@ -155,7 +155,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 47
     },
     {
       "id": "del-004",
@@ -171,7 +171,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 47
     },
     {
       "id": "del-006",
@@ -179,7 +179,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 48
     },
     {
       "id": "del-007",
@@ -307,7 +307,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 12
     },
     {
       "id": "env-009",
@@ -315,7 +315,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 12
     },
     {
       "id": "env-010",
@@ -339,7 +339,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 37
+      "duration_ms": 38
     },
     {
       "id": "id-002",
@@ -347,7 +347,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 37
+      "duration_ms": 38
     },
     {
       "id": "id-003",
@@ -355,7 +355,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 39
     },
     {
       "id": "id-004",
@@ -363,7 +363,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 36
+      "duration_ms": 37
     },
     {
       "id": "id-005",
@@ -379,7 +379,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 37
+      "duration_ms": 38
     },
     {
       "id": "id-007",
@@ -387,7 +387,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 26
     },
     {
       "id": "id-008",
@@ -411,7 +411,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 53
+      "duration_ms": 51
     },
     {
       "id": "id-011",
@@ -443,7 +443,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 45
+      "duration_ms": 46
     },
     {
       "id": "id-014",
@@ -467,7 +467,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 48
     },
     {
       "id": "id-017",
@@ -475,7 +475,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 48
+      "duration_ms": 47
     },
     {
       "id": "id-018",
@@ -483,7 +483,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 27
+      "duration_ms": 25
     },
     {
       "id": "id-019",
@@ -515,7 +515,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 48
     },
     {
       "id": "id-023",
@@ -651,7 +651,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 26
     },
     {
       "id": "mh-003",
@@ -667,7 +667,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 26
     },
     {
       "id": "mh-005",
@@ -707,7 +707,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 26
     },
     {
       "id": "mh-010",
@@ -723,7 +723,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 48
     },
     {
       "id": "mh-012",
@@ -739,7 +739,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 47
+      "duration_ms": 48
     },
     {
       "id": "mh-014",
@@ -947,7 +947,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-002",
@@ -971,7 +971,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 24
     },
     {
       "id": "tct-005",
@@ -1099,7 +1099,7 @@
       "feature": "aitp-self-attestation",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 11
+      "duration_ms": 12
     },
     {
       "id": "tct-021",
@@ -1155,7 +1155,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 23
+      "duration_ms": 24
     },
     {
       "id": "tct-028",
@@ -1163,7 +1163,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 34
+      "duration_ms": 35
     },
     {
       "id": "tct-029",
@@ -1171,7 +1171,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 34
+      "duration_ms": 42
     },
     {
       "id": "vch-001",
@@ -1179,7 +1179,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 13
     },
     {
       "id": "vch-002",
@@ -1227,5 +1227,5 @@
       "criteria": "feature-all-pass"
     }
   ],
-  "generated_at": "2026-10-31T21:25:13Z"
+  "generated_at": "2026-11-01T16:51:01Z"
 }
