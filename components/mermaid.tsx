@@ -27,6 +27,10 @@ export function Mermaid({ chart }: { chart: string }) {
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'loose',
+        // Mermaid 12 defaults to the ELK layout and the neo look. The site's
+        // diagrams and theme variables are tuned for dagre and the classic look.
+        layout: 'dagre',
+        look: 'classic',
         fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
         theme: isDark ? 'dark' : 'default',
         themeVariables: isDark
