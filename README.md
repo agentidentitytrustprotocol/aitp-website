@@ -31,6 +31,10 @@ internal-link rewriting.
 tags like `<identifier>`, numeric comparisons like `<43`, bare `{`/`}`, and
 table-cell pipes inside code spans) while leaving fenced/inline code intact.
 
+The sync also removes any synced page whose source file was deleted upstream
+(`scripts/prune_synced.py`), and fails rather than prune if a source checkout
+is missing or empty.
+
 **Automated sync:** `.github/workflows/sync-docs.yml` runs on source-repo pushes
 (via `repository_dispatch`), on a 6-hour schedule, or manually, and opens a PR
 with the regenerated `content/`.

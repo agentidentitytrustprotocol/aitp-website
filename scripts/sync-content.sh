@@ -37,10 +37,28 @@ CP_DIR="$(resolve_repo aitp-control-plane)"
 PG_DIR="$(resolve_repo aitp-playground)"
 UI_DIR="$(resolve_repo aitp-ui-console)"
 
-if [ ! -d "$SPEC_DIR" ]; then
-  echo "Error: spec directory not found at $SPEC_DIR" >&2
-  exit 1
-fi
+# Every source must be present and non-empty. The prune pass below deletes any
+# synced page the sync did not write this run, so a missing checkout would
+# otherwise unpublish that repo's docs. Fail instead.
+require_source() {
+  local name="$1" dir="$2"; shift 2
+  if [ ! -d "$dir" ]; then
+    echo "Error: $name checkout not found at $dir" >&2
+    exit 1
+  fi
+  local sub
+  for sub in "$@"; do
+    if ! compgen -G "$dir/$sub/*.md" > /dev/null; then
+      echo "Error: $name checkout at $dir has no $sub/*.md (missing or empty)" >&2
+      exit 1
+    fi
+  done
+}
+require_source agentidentitytrustprotocol "$SPEC_DIR" docs rfcs registries
+require_source aitp-rs "$RS_DIR" docs
+require_source aitp-control-plane "$CP_DIR" docs
+require_source aitp-playground "$PG_DIR" docs
+require_source aitp-ui-console "$UI_DIR" docs
 
 echo "Spec:           $SPEC_DIR"
 echo "Implementation: $RS_DIR"
@@ -157,8 +175,6 @@ if [ -d "$RS_DIR" ]; then
     [ "$base" = "readme" ] && base="index"
     gen_mdx "$file" "$CONTENT_DIR/implementation/design/$base.mdx"
   done
-else
-  echo "Skipping implementation (not found at $RS_DIR)"
 fi
 
 # ─── SDK docs (from aitp-rs) → content/sdks/<lang>/ ──────────────────────
@@ -200,8 +216,6 @@ if [ -d "$CP_DIR" ]; then
     [ "$base" = "readme" ] && continue
     gen_mdx "$file" "$CONTENT_DIR/control-plane/$base.mdx"
   done
-else
-  echo "Skipping control plane (not found at $CP_DIR)"
 fi
 
 # ─── aitp-playground → content/playground/ ───────────────────────────────
@@ -217,8 +231,6 @@ if [ -d "$PG_DIR" ]; then
     [ "$base" = "readme" ] && continue
     gen_mdx "$file" "$CONTENT_DIR/playground/$base.mdx"
   done
-else
-  echo "Skipping playground (not found at $PG_DIR)"
 fi
 
 # ─── aitp-ui-console → content/console/ (noindex) ────────────────────────
@@ -234,9 +246,13 @@ if [ -d "$UI_DIR" ]; then
     [ "$base" = "readme" ] && continue
     gen_mdx "$file" "$CONTENT_DIR/console/$base.mdx"
   done
-else
-  echo "Skipping console (not found at $UI_DIR)"
 fi
+
+# ─── Remove synced pages whose source is gone ────────────────────────────
+# Only paths the sync owns (scripts/prune_synced.py, OWNED); hand-written pages,
+# meta.json, data/ and public/ are never touched.
+echo "Pruning orphaned pages..."
+python3 "$SCRIPT_DIR/prune_synced.py" "$CONTENT_DIR" "$MANIFEST"
 
 # ─── Escape MDX-hostile angle brackets (code-aware) ──────────────────────
 echo "Escaping bare tags for MDX..."

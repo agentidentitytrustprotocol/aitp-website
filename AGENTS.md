@@ -28,7 +28,12 @@ Content originates in 5 source repos (siblings under `../`) and flows through:
 1. **`scripts/sync-content.sh`** — copies `.md` files from each source repo,
    converts to `.mdx`, injects frontmatter, and rewrites `.md` links to route
    paths. Source repos resolve as a CI checkout (`<name>-repo/`) or a sibling
-   (`../<name>`). Uses a `sedi` wrapper for macOS/Linux portability.
+   (`../<name>`). Every source checkout must exist and be non-empty, or the
+   sync fails. **`scripts/prune_synced.py`** then deletes any page under a path
+   the sync owns (`OWNED`) that this run did not write, i.e. one whose source
+   was deleted upstream; hand-written pages there are listed in `HAND_WRITTEN`
+   and kept, and `meta.json`, `content/news/`, `data/` and `public/` are never
+   touched. Tests: `scripts/test_prune_synced.py` (run by `npm test`).
 2. **`scripts/escape-mdx.py`** — a code-aware escaper invoked by the sync
    script. It skips fenced code blocks and inline code spans, and in prose
    escapes placeholder tags (`<identifier>`), numeric comparisons (`<43`), and
@@ -61,7 +66,8 @@ Each section has `app/<section>/layout.tsx` (`DocsShell`) and
 
 Each `content/<section>/` has a `meta.json` (object form: `{ "title", "pages" }`,
 ending with `"..."` to append unlisted pages). These are committed and survive a
-sync — the sync script only writes `.mdx` files.
+sync — the sync script only writes (and prunes) `.mdx` files. A page
+removed by the prune drops out of the sidebar and sitemap on its own.
 
 ### Landing, community, and walkthrough
 

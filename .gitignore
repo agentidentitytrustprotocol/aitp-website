@@ -44,6 +44,7 @@ next-env.d.ts
 /aitp-control-plane-repo/
 /aitp-playground-repo/
 /aitp-ui-console-repo/
+/aitp-verifier-ts-repo/
 
 .claude/
 temp/
