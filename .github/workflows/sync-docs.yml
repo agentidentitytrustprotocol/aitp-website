@@ -12,6 +12,14 @@ on:
   schedule:
     - cron: '0 */6 * * *'
 
+# One sync at a time: a burst of dispatches collapses to one running and one
+# pending run, so two runs never race to update automated/sync-docs. Never
+# cancel-in-progress, so a run is not cut off halfway through updating that
+# branch or its pull request.
+concurrency:
+  group: sync-docs
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest

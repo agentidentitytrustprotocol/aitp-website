@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+# A new push to a pull request cancels that PR's superseded run. A run on
+# main is never cancelled mid-run (it is the post-merge check against
+# external state: source READMEs, live Discussion dates); if several pushes
+# queue behind it, only the newest pending run is kept.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
