@@ -1,0 +1,11 @@
+# Keys deploy/doppler-sync.sh pushes from Doppler (aitp-website/prd) into the
+# Vercel project zer07labs/aitp-website, Production environment. Doppler owns
+# exactly these; the script never touches any other Vercel variable, never
+# removes one, and leaves Preview and Development alone. Preview must never
+# hold admin keys or passwords.
+#
+# The site is fully static and reads no deployment variables today (nothing
+# in app/, lib/ or components/ reads process.env), so the list is empty and
+# the sync is a no-op ("0 managed keys"). To add one: set it in Doppler
+# aitp-website/prd, list its name here (one per line), commit, then run
+# deploy/doppler-sync.sh, then deploy/doppler-sync.sh --apply.

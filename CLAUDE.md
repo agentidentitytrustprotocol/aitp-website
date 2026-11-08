@@ -15,7 +15,13 @@ npx fumadocs-mdx     # Regenerate .source/ directory (codegen for content)
 
 ./scripts/sync-content.sh            # Sync content from all sibling AITP repos
 ./scripts/sync-content.sh /path/spec # Override the spec repo path (arg 1)
+
+deploy/doppler-sync.sh               # Dry run: Doppler aitp-website/prd vs Vercel Production
+deploy/doppler-sync.sh --apply       # Push listed keys (deploy/doppler-keys.txt) to Production only
 ```
+
+Deployment variables live in Doppler (`aitp-website`: dev, dev_personal, stg,
+prd); see README "Configuration (Doppler)". Preview never gets them.
 
 ## Architecture
 
