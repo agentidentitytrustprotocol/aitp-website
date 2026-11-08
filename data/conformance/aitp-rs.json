@@ -4,7 +4,7 @@
     "name": "aitp-rs",
     "version": "0.25.1",
     "repository": "https://github.com/agentidentitytrustprotocol/aitp-rs",
-    "commit": "6a566a1a2abc6a7b7dd4060890538b99b635debf"
+    "commit": "4802efc20ce001dac7e9a60e2f50c81f2b6247bd"
   },
   "runner": {
     "name": "aitp-conformance",
@@ -147,7 +147,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 58
+      "duration_ms": 61
     },
     {
       "id": "del-003",
@@ -155,7 +155,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 47
     },
     {
       "id": "del-004",
@@ -171,7 +171,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 47
     },
     {
       "id": "del-006",
@@ -179,7 +179,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 48
     },
     {
       "id": "del-007",
@@ -283,7 +283,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 15
+      "duration_ms": 20
     },
     {
       "id": "env-006",
@@ -403,7 +403,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 48
+      "duration_ms": 47
     },
     {
       "id": "id-010",
@@ -411,7 +411,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 49
+      "duration_ms": 50
     },
     {
       "id": "id-011",
@@ -419,7 +419,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 39
+      "duration_ms": 40
     },
     {
       "id": "id-011b",
@@ -435,7 +435,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 39
+      "duration_ms": 40
     },
     {
       "id": "id-013",
@@ -443,7 +443,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 46
+      "duration_ms": 45
     },
     {
       "id": "id-014",
@@ -467,7 +467,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 48
+      "duration_ms": 47
     },
     {
       "id": "id-017",
@@ -483,7 +483,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 25
+      "duration_ms": 26
     },
     {
       "id": "id-019",
@@ -507,7 +507,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 24
+      "duration_ms": 23
     },
     {
       "id": "id-022",
@@ -515,7 +515,7 @@
       "feature": "aitp-pinned-admission",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 49
+      "duration_ms": 48
     },
     {
       "id": "id-023",
@@ -603,7 +603,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 1
+      "duration_ms": 2
     },
     {
       "id": "man-004",
@@ -635,7 +635,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "mh-001",
@@ -1099,7 +1099,7 @@
       "feature": "aitp-self-attestation",
       "required_for_core": false,
       "outcome": "pass",
-      "duration_ms": 12
+      "duration_ms": 11
     },
     {
       "id": "tct-021",
@@ -1147,7 +1147,7 @@
       "feature": null,
       "required_for_core": true,
       "outcome": "pass",
-      "duration_ms": 2
+      "duration_ms": 1
     },
     {
       "id": "tct-027",
@@ -1227,5 +1227,5 @@
       "criteria": "feature-all-pass"
     }
   ],
-  "generated_at": "2026-11-08T03:37:44Z"
+  "generated_at": "2026-11-08T04:20:51Z"
 }
