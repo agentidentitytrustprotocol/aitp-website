@@ -20,6 +20,7 @@ const footerLinks = [
       { label: 'Implementation', href: '/implementation' },
       { label: 'Conformance', href: '/conformance' },
       { label: 'Control Plane', href: '/control-plane' },
+      { label: 'Docs MCP', href: '/docs/docs-mcp' },
     ],
   },
   {

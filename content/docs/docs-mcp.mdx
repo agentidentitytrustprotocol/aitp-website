@@ -1,0 +1,54 @@
+---
+title: "Docs MCP server"
+description: "A read-only MCP server over the AITP knowledge base, open to anonymous callers"
+---
+
+The AITP docs MCP server (**docs-mcp**) is a read-only
+[Model Context Protocol](https://modelcontextprotocol.io) server over the AITP
+knowledge base. Point an MCP-capable agent or IDE at it, and the agent can
+search and read what the AITP repositories document without cloning them.
+
+## What it serves
+
+The knowledge base has three kinds of content:
+
+- **Repo pages.** One page per AITP repository: what it owns, how it is built and run, and how it relates to the others.
+- **Generated pages.** Pages extracted from the repositories themselves, such as package versions, environment variable names and the SDK public surface.
+- **Facts.** Short, citable statements, each tied to the source it came from.
+
+The server is read-only: no tool changes anything.
+
+## Anonymous access
+
+You can call the server without a token. An anonymous caller gets:
+
+- **Read-only access to the public view.** The public view holds only content whose sources are all public AITP repositories: 9 repo pages, 8 generated pages and 49 facts. Withheld pages do not appear in any tool, resource, prompt or search result.
+- **A rate limit per client IP of 60 requests a minute and 2000 requests a day.** A request over either limit gets HTTP `429` with a `Retry-After` header that gives the exact number of seconds to wait. A request turned away by the minute limit does not count against the day limit.
+- **Request caps.** Each request carries one JSON-RPC message (batches are refused), with a 64 KiB request body, a 512 KiB response and a 10-second deadline.
+
+## Token access
+
+A token holder gets the full knowledge base, including the 5 top-level docs
+(the ecosystem map, the task index, the agent guide, the known-drift list and
+the README) that the public view leaves out. Token holders have a higher rate
+limit of 300 requests a minute.
+
+Tokens are issued on request.
+
+## Connecting a client
+
+The server speaks MCP over **Streamable HTTP**. It is stateless: each call is
+a single `POST` with a JSON response, and it does not use sessions or
+server-sent events.
+
+1. Add the server to your MCP client as a remote (HTTP) server, using the endpoint URL.
+2. For anonymous access, send **no** `Authorization` header. A wrong or empty credential is rejected with `401`; it is not treated as anonymous.
+3. With a token, send it as a bearer token: `Authorization: Bearer` followed by your token.
+
+Keep the token out of shared config files and source control, as you would any credential.
+
+## Getting the endpoint or a token
+
+The endpoint URL is not published on this site; it is available on request,
+and so are tokens. Ask in
+[GitHub Discussions](https://github.com/agentidentitytrustprotocol/agentidentitytrustprotocol/discussions).
