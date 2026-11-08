@@ -46,7 +46,8 @@ Content originates in 5 source repos (siblings under `../`) and flows through:
    (run by `npm test`).
 2. **`scripts/escape-mdx.py`** — a code-aware escaper invoked by the sync
    script. It skips fenced code blocks and inline code spans, and in prose
-   escapes placeholder tags (`<identifier>`), numeric comparisons (`<43`), and
+   escapes placeholder tags (`<identifier>`, multi-word `<local time>` unless
+   the first word is an HTML element), numeric comparisons (`<43`), and
    bare `{`/`}`. On table rows it escapes `|` inside code spans to `\|` (GFM
    would otherwise treat the pipe as a column delimiter and break the span).
 3. **`scripts/rewrite-links.py`** — resolves every relative link against the

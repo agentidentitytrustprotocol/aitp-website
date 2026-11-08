@@ -12,6 +12,20 @@ import re
 PLACEHOLDER = re.compile(r'<([A-Za-z][A-Za-z0-9_./:-]*)>')
 # CommonMark autolinks (<https://...>) are not valid MDX: the '<' opens a JSX tag.
 AUTOLINK = re.compile(r'<((?:https?://|mailto:)[^\s<>]+)>')
+# Multi-word placeholders (<local time>, <own AID>): MDX reads the first word as a
+# tag name and the rest as boolean attributes, then fails on the missing closing
+# tag. Words only (no '=', quotes or '/'), so a real tag with attributes never
+# matches; a first word that is an HTML element (<details open>) is left alone.
+MULTIWORD = re.compile(r'<([A-Za-z][A-Za-z0-9_.:-]*(?: +[A-Za-z0-9][A-Za-z0-9_.:-]*)+)>')
+HTML_ELEMENTS = frozenset('''
+    a abbr address area article aside audio b bdi bdo blockquote br button canvas
+    caption cite code col colgroup data dd del details dfn dialog div dl dt em
+    embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hr i
+    iframe img input ins kbd label legend li main map mark menu meter nav object
+    ol optgroup option output p picture pre progress q rp rt ruby s samp section
+    select small source span strong sub summary sup table tbody td template
+    textarea tfoot th thead time tr track u ul var video wbr
+'''.split())
 
 
 def escape_prose(text: str) -> str:
@@ -19,6 +33,9 @@ def escape_prose(text: str) -> str:
     text = AUTOLINK.sub(lambda m: f'[{m.group(1).removeprefix("mailto:")}]({m.group(1)})', text)
     # <placeholder> style tokens -> &lt;placeholder&gt;
     text = PLACEHOLDER.sub(lambda m: f'&lt;{m.group(1)}&gt;', text)
+    text = MULTIWORD.sub(
+        lambda m: m.group(0) if m.group(1).split()[0].lower() in HTML_ELEMENTS
+        else f'&lt;{m.group(1)}&gt;', text)
     # '<' immediately followed by a digit (e.g. <43, <1s) -> escape the bracket only
     text = re.sub(r'<(?=[0-9])', '&lt;', text)
     # Bare braces in prose are parsed by MDX as JS expressions; escape to entities.
